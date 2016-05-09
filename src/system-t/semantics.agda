@@ -24,7 +24,6 @@ module LogicalRelations (F : Set → Set) where
   module 𝒱 where
     ⟦_⟧₀ : BaseType → Set
     ⟦ nat ⟧₀ = Nat
-    ⟦ atom ⟧₀ = String
 
     ⟦_⟧ : Type → Set
     ⟦ ` b ⟧ = F ⟦ b ⟧₀
@@ -49,7 +48,6 @@ module T where
   open LogicalRelations id public
 
   ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → Point → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
-  ⟦ tok x ⟧ α ρ = x
   ⟦ zero ⟧ α ρ = ze
   ⟦ succ ⟧ α ρ = su_
   ⟦ rec[ σ ] ⟧ α ρ = rec
@@ -66,7 +64,6 @@ module 𝔅 where
   Ext[ σ ⇒ τ ] g δ s = Ext[ τ ] (λ x → g x s) δ
 
   ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
-  ⟦ tok x ⟧ ρ = η x
   ⟦ zero ⟧ ρ = η ze
   ⟦ succ ⟧ ρ = map su_
   ⟦ rec[ σ ] ⟧ ρ ih z = Ext[ σ ] (rec (ih ∘ η) z)

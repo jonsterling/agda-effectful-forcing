@@ -12,7 +12,7 @@ import Context as Ctx
 open Ctx hiding (⋄; _,_)
 
 data BaseType : Set where
-  nat atom : BaseType
+  nat : BaseType
 
 data Type : Set where
   `_ : BaseType → Type
@@ -37,7 +37,6 @@ open 𝔏 using (T; TΩ; T⇒T; -⇒TΩ)
 module _ where
   open Ctx
   data _▹_⊢ᵀ_ {n : Nat} : (𝔏 : 𝔏.Ob) (Γ : Ctx n) → Type → Set where
-    tok : ∀ {𝔏} {Γ : Ctx n} → String → 𝔏 ▹ Γ ⊢ᵀ ` atom
     zero : ∀ {𝔏} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ ` nat
     succ : ∀ {𝔏} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ ` nat ⇒ ` nat
     rec[_] : ∀ {𝔏} {Γ : Ctx n} σ → 𝔏 ▹ Γ ⊢ᵀ (` nat ⇒ σ ⇒ σ) ⇒ σ ⇒ ` nat ⇒ σ
@@ -60,7 +59,6 @@ infixr 3 ⊢ᵀ_
 
 ⊢ᵀ-map : ∀ {𝔏₀ 𝔏₁ n τ} {Γ : Ctx n} → 𝔏.Hom 𝔏₀ 𝔏₁ → 𝔏₀ ▹ Γ ⊢ᵀ τ → 𝔏₁ ▹ Γ ⊢ᵀ τ
 ⊢ᵀ-map T⇒T tm = tm
-⊢ᵀ-map -⇒TΩ (tok x) = tok x
 ⊢ᵀ-map -⇒TΩ zero = zero
 ⊢ᵀ-map -⇒TΩ succ = succ
 ⊢ᵀ-map -⇒TΩ rec[ σ ] = rec[ σ ]
@@ -73,7 +71,6 @@ module _ where
   open Ctx
 
   ren : ∀ {𝔏 m n τ} {Γ : Ctx m} {Δ : Ctx n} → Ren Γ Δ → 𝔏 ▹ Γ ⊢ᵀ τ → 𝔏 ▹ Δ ⊢ᵀ τ
-  ren ρ (tok x) = tok x
   ren ρ zero = zero
   ren ρ succ = succ
   ren ρ rec[ σ ] = rec[ σ ]
