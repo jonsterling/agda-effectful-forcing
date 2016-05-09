@@ -1,0 +1,5 @@
+name: dialogue-trees
+include:
+  .
+  src
+  modules/agda-prelude/src
