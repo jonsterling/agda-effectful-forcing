@@ -18,8 +18,9 @@ open import System-T.Syntax
 id : {ℓ : _} {A : Set ℓ} → A → A
 id x = x
 
-module Domains (F : Set → Set) where
-
+-- We construct the logical relations relative to a functor in which
+-- to interpret the base types.
+module LogicalRelations (F : Set → Set) where
   module 𝒱 where
     ⟦_⟧₀ : BaseType → Set
     ⟦ nat ⟧₀ = Nat
@@ -31,7 +32,7 @@ module Domains (F : Set → Set) where
 
   module 𝒢 where
     ⟦_⟧ : {n : Nat} → Ctx n → Set
-    ⟦ Γ ⟧ = (i : Fin _) → 𝒱.⟦ Γ [ i ] ⟧ -- 𝒱.⟦ Γ [ i ] ⟧
+    ⟦ Γ ⟧ = (i : Fin _) → 𝒱.⟦ Γ [ i ] ⟧
 
     ⋄ : ⟦ Ctx.⋄ ⟧
     ⋄ ()
@@ -45,7 +46,7 @@ rec f x ze = x
 rec f x (su n) = f n (rec f x n)
 
 module T where
-  open Domains id public
+  open LogicalRelations id public
 
   ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → Point → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
   ⟦ tok x ⟧ α ρ = x
@@ -58,7 +59,7 @@ module T where
   ⟦ Ω ⟧ α ρ = α
 
 module 𝔅 where
-  open Domains 𝔅 public
+  open LogicalRelations 𝔅 public
 
   Ext[_] : {X : Set} (τ : Type) → (X → 𝒱.⟦ τ ⟧) → 𝔅 X → 𝒱.⟦ τ ⟧
   Ext[ ` _ ] f x = x ≫= f
