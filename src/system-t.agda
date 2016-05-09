@@ -63,5 +63,21 @@ open import System-T.Semantics
 ⌊𝔅⟦ Ω ⟧⌋ ρ = ⌊Ext[ ` nat ]⌋ · (⌊ϝ⌋ · ⌊η⌋)
 
 -- Every T-definable Baire functional can be quoted into a T-definable dialogue tree.
+-- Note that this operation is only available for closed terms. This operation cannot be
+-- fully internalized into System T, because it is not extensional.
 ⌊⌈_⌉⌋ : ∀ {𝔏 A} → 𝔏 ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat) → 𝔏 ▹ ⋄ ⊢ᵀ ⌊𝔅⌋ (` nat) A
 ⌊⌈ t ⌉⌋ = ⌊𝔅⟦ t ⟧⌋ (λ { () }) · (⌊ext⌋ · (⌊ϝ⌋ · ⌊η⌋))
+
+-- TODO! this is a pain in the neck to define!
+⌊max⌋ : ⊢ᵀ ` nat ⇒ ` nat ⇒ ` nat
+⌊max⌋ = ƛ {!!}
+
+⌊tree-𝔐⌋ : ⊢ᵀ (⌊𝔅⌋ (` nat) ((` nat ⇒ ` nat) ⇒ ` nat)) ⇒ (` nat ⇒ ` nat) ⇒ ` nat
+⌊tree-𝔐⌋ = ƛ (ν ze · ƛ ƛ zero · ƛ ƛ ƛ (⌊max⌋ · (succ · ν (su ze)) · (ν (su (su ze)) · (ν ze · ν (su ze)) · ν ze)))
+
+⌊𝔐[_]⌋
+  : ∀ {𝔏}
+  → 𝔏 ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat
+  → 𝔏 ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat
+⌊𝔐[ t ]⌋ =
+  ⌊tree-𝔐⌋ · ⌊⌈ t ⌉⌋
