@@ -12,8 +12,7 @@ open import Dialogue
 
 open Π using (_∘_)
 
--- The Baire Space is Brouwer's universal spread. We define its points and
--- neighborhoods below.
+-- The Baire Space is Brouwer's universal spread.
 
 Seq : Set → Set
 Seq X = Nat → X
@@ -21,10 +20,6 @@ Seq X = Nat → X
 -- A point in the Baire spread is a sequence of natural numbers.
 Point : Set
 Point = Seq Nat
-
--- A neighborhood in the Baire spread is a finite list of natural numbers.
-Neigh : Set
-Neigh = List Nat
 
 -- The type of mental constructions (dialogues) of functionals on the Baire spread.
 𝔅 : Set → Set

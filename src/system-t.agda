@@ -5,6 +5,7 @@ open import Prelude.Natural
 open import Prelude.List
 open import Prelude.Monoidal hiding (_⇒_)
 import Prelude.Inspect as I
+open import Prelude.Maybe
 open import Prelude.Path
 open import Prelude.Decidable
 
@@ -82,69 +83,130 @@ generic = ⌊ext⌋ · (⌊ϝ⌋ · ⌊η⌋)
 _⇔_ : Set → Set → Set
 P ⇔ Q = (P → Q) ⊗ (Q → P)
 
-take : Nat → Point → Neigh
+head : Point → Nat
+head α = α 0
+
+tail : Point → Point
+tail α i = α (su i)
+
+_⌢_ : List Nat → Nat → List Nat
+[] ⌢ x = x ∷ []
+(x ∷ U) ⌢ y = x ∷ (U ⌢ y)
+
+take : Nat → Point → List Nat
 take ze α = []
-take (su_ i) α = α i ∷ take i (λ x → α (su x))
+take (su n) α = head α ∷ take n (tail α)
 
-bar-statement : Set₁
-bar-statement =
-  (φ : Neigh → Set)
-  ([φ] : 𝔏.TΩ ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat)
-    → (∀ α → φ (take (TΩ.⟦ [φ] · Ω ⟧₀ α) α))
-    → (∀ U x → φ U → φ (x ∷ U))
-    → (ψ : Neigh → Set)
-    → (∀ U → φ U → ψ U)
-    → (∀ U → (∀ i → ψ (i ∷ U)) → ψ U)
-    → ∀ U → ψ U
-
-pt : Neigh → Point
-pt [] _ = ze
+pt : List Nat → Point
+pt [] i = 0
 pt (x ∷ U) ze = x
 pt (x ∷ U) (su_ i) = pt U i
 
+take-pt-id : ∀ U → take (List.len U) (pt U) ≡ U
+take-pt-id [] = refl
+take-pt-id (x ∷ U) rewrite take-pt-id U = refl
+
+take-pt-snoc-id : ∀ U y → take (List.len U) (pt (U ⌢ y)) ≡ U
+take-pt-snoc-id [] _ = refl
+take-pt-snoc-id (x ∷ U) y rewrite take-pt-snoc-id U y = refl
+
+data ⊢_◃_ : (U : List Nat) (φ : List Nat → Set) → Set where
+  η : ∀ {φ U} → φ U → ⊢ U ◃ φ
+  ζ : ∀ {φ U x} → ⊢ U ◃ φ → ⊢ U ⌢ x ◃ φ
+  ϝ : ∀ {φ U} → (∀ x → ⊢ U ⌢ x ◃ φ) → ⊢ U ◃ φ
+
+data ⊩_◃_ : (U : List Nat) (φ : List Nat → Set) → Set where
+  η : ∀ {φ U} → φ U → ⊩ U ◃ φ
+  ϝ : ∀ {φ U} → (∀ x → ⊩ U ⌢ x ◃ φ) → ⊩ U ◃ φ
+
+monotone : (φ : List Nat → Set) → Set
+monotone φ = ∀ {U x} → φ U → φ (U ⌢ x)
+
+module Normalize {φ : List Nat → Set} (φ-mono : monotone φ) where
+  ⊩-mono : monotone (⊩_◃ φ)
+  ⊩-mono (η x) = η (φ-mono x)
+  ⊩-mono (ϝ κ) = ϝ λ x → ⊩-mono (κ _)
+
+  eval : ∀ {U} → ⊢ U ◃ φ → ⊩ U ◃ φ
+  eval (η x) = η x
+  eval (ζ p) = ⊩-mono (eval p)
+  eval (ϝ κ) = ϝ (λ x → eval (κ x))
+
+  quo : ∀ {U} → ⊩ U ◃ φ → ⊢ U ◃ φ
+  quo (η x) = η x
+  quo (ϝ κ) = ϝ λ x → quo (κ x)
+
+  norm : ∀ {U} → ⊢ U ◃ φ → ⊢ U ◃ φ
+  norm x = quo (eval x)
+
+data _∈_ : Point → List Nat → Set where
+  stop : ∀ {α} → α ∈ []
+  step : ∀ {α U} → tail α ∈ U → α ∈ (head α ∷ U)
+
 postulate
-  coh : ∀ {𝔏} α (t : 𝔏 ▹ ⋄ ⊢ᵀ ` nat) → TΩ.⟦ t ⟧₀ α ≡ 𝔇[ 𝔅.⟦ t ⟧₀ ] α
+  pt-∈ : ∀ U → pt U ∈ U
 
-data ⊢_◃_ (U : Neigh) (φ : Neigh → Set) : Set where
-  -- [U] is secured.
-  η : φ U → ⊢ U ◃ φ
-
-  -- [U] is securable because all of its immediate children are securable.
-  ϝ : (∀ x → ⊢ (x ∷ U) ◃ φ) → ⊢ U ◃ φ
-
-quote-nat : Nat → ⊢ᵀ ` nat
-quote-nat ze = zero
-quote-nat (su_ x) = succ · quote-nat x
-
-insert : Point → Nat → Nat → Point
-insert α ze x ze = x
-insert α ze x (su_ j) = α j
-insert α (su_ i) x ze = α ze
-insert α (su_ i) x (su_ j) = insert α i x j
-
-insert-law : ∀ α i x → insert α i x i ≡ x
-insert-law α ze x = refl
-insert-law α (su_ i) x = insert-law α i x
-
-data _≼_ : Neigh → Point → Set where
-  [] : ∀ {α} → [] ≼ α
-  _∷_ : ∀ {α x U} → U ≼ α → α (List.len U) ≡ x → (x ∷ U) ≼ α
+infixr 3 _∈_
 
 module BarTheorem
-  (φ : Neigh → Set)
+  (φ : List Nat → Set)
   (φ? : ∀ U → Decidable (φ U))
-  (is-mono : ∀ U x → φ U → φ (x ∷ U))
+  (mono : monotone φ)
   where
+    mono◃⋆ : ∀ V → ⊢ [] ◃ φ → ⊢ V ◃ φ
+    mono◃⋆ = {!!}
+
+    mono⋆ : ∀ V → φ [] → φ V
+    mono⋆ = {!!}
+
+    open Normalize {φ} mono
+
+    data in-bounds : List Nat → Nat → Set where
+      in-bounds-ze : ∀ {U x n} → n ≡ List.len U → in-bounds (U ⌢ x) n
+      in-bounds-su : ∀ {U i x} → in-bounds U (su i) → in-bounds (U ⌢ x) i
+
+    data out-bounds : List Nat → Nat → Set where
+      out-bounds-[] : ∀ {i} → out-bounds [] i
+      out-bounds-∷ : ∀ {U i x} → out-bounds U i → out-bounds (x ∷ U) (su i)
+
+    data bounds (U : List Nat) (i : Nat) : Set where
+      is-in-bounds : in-bounds U i → bounds U i
+      is-out-bounds : out-bounds U i → bounds U i
+
+    compute-bounds : (U : List Nat) (i : Nat) → bounds U i
+    compute-bounds = {!!}
+
+    take-snoc-lemma : ∀ α i → take (su i) α ≡ take i α ⌢ α i
+    take-snoc-lemma α ze = refl
+    take-snoc-lemma α (su_ i) rewrite take-snoc-lemma (tail α) i = refl
+
+    postulate
+      bounds-lem : ∀ {U} n x → in-bounds U (su n) → take n (pt U) ≡ take n (pt (U ⌢ x))
+      -- Informal proof:
+      -- By hypothesis, we have [su n < | U |]; therefore, the first n items of all extensions of
+      -- U will be the same, because they will be a prefix of U itself.
+
+    lemma : {U : List Nat} {n : Nat} → in-bounds U n → ⊩ (take n (pt U)) ◃ φ  → ⊢ U ◃ φ
+    lemma (in-bounds-ze {U = U} {x = x} h) p = ζ (quo p′)
+      where
+        p′ : ⊩ U ◃ φ
+        p′ rewrite take-pt-snoc-id U x ≡.⁻¹ | h ≡.⁻¹ = p
+    lemma {n = n} (in-bounds-su {U = U} {x = x} b) p = ζ (lemma b (eval p′))
+      where
+        p′ : ⊢ take (su n) (pt U) ◃ φ
+        p′ rewrite take-snoc-lemma (pt U) n | bounds-lem n x b = ζ (quo p)
+
     annotate
-      : (U : Neigh)
+      : (U : List Nat)
       → (δ : 𝔅 Nat)
-      → (is-bar : ∀ α → U ≼ α → φ (take (𝔇[ δ ] α) α))
+      → (is-bar : ∀ α → α ∈ U → φ (take (𝔇[ δ ] α) α))
       → ⊢ U ◃ φ
-    annotate U (η x) is-bar = {!!}
+    annotate U (η n) is-bar with compute-bounds U n
+    annotate U (η n) is-bar | is-in-bounds b = lemma b (η (is-bar (pt U) (pt-∈ U)))
+    annotate U (η n) is-bar | is-out-bounds x = {!!}
+
     annotate U (ϝ κ i) is-bar =
-      ϝ λ j →
-        annotate (j ∷ U) (κ i) λ α x →
-          {!!}
+      {!!}
 
 ⌊id⌋ : ∀ {τ} → ⊢ᵀ τ ⇒ τ
 ⌊id⌋ = ƛ ν ze
