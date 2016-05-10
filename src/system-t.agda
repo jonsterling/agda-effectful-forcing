@@ -2,6 +2,11 @@ module System-T where
 
 open import Prelude.Finite
 open import Prelude.Natural
+open import Prelude.List
+open import Prelude.Monoidal hiding (_⇒_)
+import Prelude.Inspect as I
+open import Prelude.Path
+open import Prelude.Decidable
 
 open import Baire
 open import Dialogue
@@ -10,14 +15,13 @@ open import Context
 open import System-T.Syntax
 open import System-T.Semantics
 
-
 -- To convert an internal Baire-functional into a dialogue tree, apply it to the
 -- generic point Ω!
-⌈_⌉ : ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat → 𝔅 Nat
-⌈ m ⌉ = 𝔅.⟦ ⊢ᵀ-map {𝔏.T} 𝔏.-⇒TΩ m · Ω ⟧ 𝔅.𝒢.⋄
+⌈_⌉ : ∀ {𝔏} → 𝔏 ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat → 𝔅 Nat
+⌈ m ⌉ = 𝔅.⟦ ⊢ᵀ-map 𝔏.-⇒TΩ m · Ω ⟧₀
 
--- TODO: internalizing modulus of continuity via church encoding of dialogues:
--- http://www.cs.bham.ac.uk/~mhe/dialogue/church-dialogue-internal.html
+⌈_⌉′ : 𝔏.TΩ ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat → 𝔅 Nat
+⌈ m ⌉′  = 𝔅.⟦ m · Ω ⟧₀
 
 -- Church encoded dialogue trees in System T
 ⌊𝔇⌋ : Type → Type → Type → Type → Type
@@ -74,6 +78,73 @@ generic = ⌊ext⌋ · (⌊ϝ⌋ · ⌊η⌋)
 -- fully internalized into System T, because it is not extensional.
 ⌊⌈_⌉⌋ : ∀ {𝔏 A} → 𝔏 ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat) → 𝔏 ▹ ⋄ ⊢ᵀ ⌊𝔅⌋ (` nat) A
 ⌊⌈ t ⌉⌋ = ⌊𝔅⟦ t ⟧⌋ (λ { () }) · generic
+
+_⇔_ : Set → Set → Set
+P ⇔ Q = (P → Q) ⊗ (Q → P)
+
+take : Nat → Point → Neigh
+take ze α = []
+take (su_ i) α = α i ∷ take i (λ x → α (su x))
+
+bar-statement : Set₁
+bar-statement =
+  (φ : Neigh → Set)
+  ([φ] : 𝔏.TΩ ▹ ⋄ ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat)
+    → (∀ α → φ (take (TΩ.⟦ [φ] · Ω ⟧₀ α) α))
+    → (∀ U x → φ U → φ (x ∷ U))
+    → (ψ : Neigh → Set)
+    → (∀ U → φ U → ψ U)
+    → (∀ U → (∀ i → ψ (i ∷ U)) → ψ U)
+    → ∀ U → ψ U
+
+pt : Neigh → Point
+pt [] _ = ze
+pt (x ∷ U) ze = x
+pt (x ∷ U) (su_ i) = pt U i
+
+postulate
+  coh : ∀ {𝔏} α (t : 𝔏 ▹ ⋄ ⊢ᵀ ` nat) → TΩ.⟦ t ⟧₀ α ≡ 𝔇[ 𝔅.⟦ t ⟧₀ ] α
+
+data ⊢_◃_ (U : Neigh) (φ : Neigh → Set) : Set where
+  -- [U] is secured.
+  η : φ U → ⊢ U ◃ φ
+
+  -- [U] is securable because all of its immediate children are securable.
+  ϝ : (∀ x → ⊢ (x ∷ U) ◃ φ) → ⊢ U ◃ φ
+
+quote-nat : Nat → ⊢ᵀ ` nat
+quote-nat ze = zero
+quote-nat (su_ x) = succ · quote-nat x
+
+insert : Point → Nat → Nat → Point
+insert α ze x ze = x
+insert α ze x (su_ j) = α j
+insert α (su_ i) x ze = α ze
+insert α (su_ i) x (su_ j) = insert α i x j
+
+insert-law : ∀ α i x → insert α i x i ≡ x
+insert-law α ze x = refl
+insert-law α (su_ i) x = insert-law α i x
+
+data _≼_ : Neigh → Point → Set where
+  [] : ∀ {α} → [] ≼ α
+  _∷_ : ∀ {α x U} → U ≼ α → α (List.len U) ≡ x → (x ∷ U) ≼ α
+
+module BarTheorem
+  (φ : Neigh → Set)
+  (φ? : ∀ U → Decidable (φ U))
+  (is-mono : ∀ U x → φ U → φ (x ∷ U))
+  where
+    annotate
+      : (U : Neigh)
+      → (δ : 𝔅 Nat)
+      → (is-bar : ∀ α → U ≼ α → φ (take (𝔇[ δ ] α) α))
+      → ⊢ U ◃ φ
+    annotate U (η x) is-bar = {!!}
+    annotate U (ϝ κ i) is-bar =
+      ϝ λ j →
+        annotate (j ∷ U) (κ i) λ α x →
+          {!!}
 
 ⌊id⌋ : ∀ {τ} → ⊢ᵀ τ ⇒ τ
 ⌊id⌋ = ƛ ν ze

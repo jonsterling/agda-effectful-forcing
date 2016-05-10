@@ -42,13 +42,13 @@ instance
 
 infixr 3 _⊩_≡_
 
-data _⊩_≡_ {X : Set} : Neigh → Seq X → Seq X → Set where
+data _⊩_≡_ {X : Set} : List Nat → Seq X → Seq X → Set where
   []
     : {α β : Seq X}
     → [] ⊩ α ≡ β
 
   _∷_
-    : {α β : Seq X} {i : Nat} {U : Neigh}
+    : {α β : Seq X} {i : Nat} {U : List Nat}
     → α i ≡ β i
     → U ⊩ α ≡ β
     → i ∷ U ⊩ α ≡ β
@@ -57,7 +57,7 @@ data _⊩_≡_ {X : Set} : Neigh → Seq X → Seq X → Set where
 continuous : (Point → Nat) → Set
 continuous f =
   (α : Point) →
-    Σ[ Neigh ∋ U ]
+    Σ[ List Nat ∋ U ]
       ((β : Point) → U ⊩ α ≡ β → f α ≡ f β)
 
 -- Every dialogue is continuous.
@@ -68,7 +68,7 @@ continuous f =
     IH : continuous 𝔇[ φ (α i) ]
     IH = 𝔇-continuity (φ (α i))
 
-    U : Neigh
+    U : List Nat
     U = Σ.fst (IH α)
 
     criss : (β : Point) → U ⊩ α ≡ β → 𝔇[ φ (α i) ] α ≡ 𝔇[ φ (α i) ] β

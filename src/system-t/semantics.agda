@@ -6,6 +6,7 @@ open import Prelude.Monoidal hiding (_⇒_; _,_)
 open import Prelude.Monad
 open import Prelude.Natural
 open import Prelude.String
+open import Prelude.Path
 
 import Context as Ctx
 open Ctx hiding (⋄; _,_)
@@ -47,6 +48,20 @@ rec f x (su n) = f n (rec f x n)
 module T where
   open LogicalRelations id public
 
+  ⟦_⟧ : ∀ {n τ} {Γ : Ctx n} → 𝔏.T ▹ Γ ⊢ᵀ τ → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
+  ⟦ zero ⟧ _ = ze
+  ⟦ succ ⟧ _ = su_
+  ⟦ rec[ σ ] ⟧ _ = rec
+  ⟦ ν i ⟧ ρ = ρ i
+  ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
+  ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
+
+  ⟦_⟧₀ : ∀ {τ} → 𝔏.T ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
+  ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
+
+module TΩ where
+  open LogicalRelations id public
+
   ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → Point → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
   ⟦ zero ⟧ α ρ = ze
   ⟦ succ ⟧ α ρ = su_
@@ -55,6 +70,9 @@ module T where
   ⟦ ƛ t ⟧ α ρ = λ x → ⟦ t ⟧ α (ρ 𝒢., x)
   ⟦ m · n ⟧ α ρ = ⟦ m ⟧ α ρ (⟦ n ⟧ α ρ)
   ⟦ Ω ⟧ α ρ = α
+
+  ⟦_⟧₀ : ∀ {𝔏 τ} → 𝔏 ▹ Ctx.⋄ ⊢ᵀ τ → Point → 𝒱.⟦ τ ⟧
+  ⟦ t ⟧₀ α = ⟦ t ⟧ α 𝒢.⋄
 
 module 𝔅 where
   open LogicalRelations 𝔅 public
@@ -71,3 +89,6 @@ module 𝔅 where
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
   ⟦ Ω ⟧ ρ = Ext[ ` nat ] (ϝ η)
+
+  ⟦_⟧₀ : ∀ {𝔏 τ} → 𝔏 ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
+  ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
