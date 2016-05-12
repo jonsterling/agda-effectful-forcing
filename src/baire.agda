@@ -9,6 +9,7 @@ open import Prelude.Functor
 open import Prelude.Monad
 
 open import Dialogue
+open import Snoc
 
 open Π using (_∘_)
 
@@ -24,6 +25,19 @@ Point = Seq Nat
 -- The type of mental constructions (dialogues) of functionals on the Baire spread.
 𝔅 : Set → Set
 𝔅 = 𝔇 Nat Nat
+
+𝔅ₙ : Set → Set
+𝔅ₙ = 𝔇ₙ Nat
+
+instance
+  𝔅ₙ-Functor : Functor 𝔅ₙ
+  Functor.map 𝔅ₙ-Functor f (η x) = η (f x)
+  Functor.map 𝔅ₙ-Functor f (ϝ φ) = ϝ λ x → map f (φ x)
+
+  𝔅ₙ-Monad : Monad 𝔅ₙ
+  Monad.return_ 𝔅ₙ-Monad = η
+  Monad.bind 𝔅ₙ-Monad κ (η x) = κ x
+  Monad.bind 𝔅ₙ-Monad κ (ϝ φ) = ϝ λ x → Monad.bind 𝔅ₙ-Monad κ (φ x)
 
 instance
   𝔅-Functor : Functor 𝔅
@@ -94,3 +108,66 @@ eloquent⇒continuous
   → continuous f
 eloquent⇒continuous (δ ▸ δ≡) =
   continuity-extensional δ≡ (𝔇-continuity δ)
+
+
+head : Point → Nat
+head α = α 0
+
+tail : Point → Point
+tail α i = α (su i)
+
+take : Nat → Point → List Nat
+take ze α = []
+take (su n) α = head α ∷ take n (tail α)
+
+TAKE : Nat
+TAKE = 0
+
+{-# DISPLAY take x y = TAKE x y #-}
+
+pt : List Nat → Point
+pt [] i = 0
+pt (x ∷ U) ze = x
+pt (x ∷ U) (su_ i) = pt U i
+
+take-pt-id : ∀ U → take (List.len U) (pt U) ≡ U
+take-pt-id [] = refl
+take-pt-id (x ∷ U) rewrite take-pt-id U = refl
+
+take-pt-snoc-id : ∀ U y → take (List.len U) (pt (U ⌢ y)) ≡ U
+take-pt-snoc-id [] _ = refl
+take-pt-snoc-id (x ∷ U) y rewrite take-pt-snoc-id U y = refl
+
+snoc-cons-id : ∀ (U : List Nat) x y → x ∷ (U ⌢ y) ≡ (x ∷ U) ⌢ y
+snoc-cons-id [] x y = refl
+snoc-cons-id (x ∷ U) y z rewrite snoc-cons-id U x z = refl
+
+cons : Nat → Point → Point
+cons x α ze = x
+cons x α (su_ i) = α i
+
+prepend : List Nat → Point → Point
+prepend [] α = α
+prepend (x ∷ xs) α = cons x (prepend xs α)
+
+_⊕<_ : List Nat → Point → Point
+U ⊕< α = prepend U α
+
+{-# DISPLAY prepend U α = U ⊕< α #-}
+{-# DISPLAY cons x α  = x ∷ α #-}
+
+take-len-prepend : ∀ U α → take (List.len U) (U ⊕< α) ≡ U
+take-len-prepend [] α = refl
+take-len-prepend (x ∷ U) α rewrite take-len-prepend U α = refl
+
+postulate
+  take-prepend-lemma : ∀ U n α β → n Nat.< List.len U → take n (U ⊕< α) ≡ take n (U ⊕< β)
+
+take-len-cons-prepend : ∀ U α x → take (su (List.len U)) (cons x (U ⊕< α)) ≡ x ∷ U
+take-len-cons-prepend [] α x = refl
+take-len-cons-prepend (x ∷ U) α y rewrite take-len-cons-prepend U α y | take-len-prepend U α = refl
+
+cons-snoc-prepend-law : ∀ U {α x n} → take n (U ⊕< (cons x α)) ≡ take n ((U ⌢ x) ⊕< α)
+cons-snoc-prepend-law [] = refl
+cons-snoc-prepend-law (x ∷ U) {n = ze} = refl
+cons-snoc-prepend-law (x ∷ U) {α = α} {x = y} {n = su_ n} rewrite cons-snoc-prepend-law U {α = α} {x = y} {n = n} = refl
