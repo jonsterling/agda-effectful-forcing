@@ -26,26 +26,30 @@ module BarTheorem (φ : Species) (mono : monotone φ) where
 
   bar-theorem
     : ∀ U δ
-    → δ ⊨ U ◃ φ
+    → δ ⊨ U ◃ φ -- I have a nagging suspicion that the definition of this premise is wrong.
     → ⊢ U ◃ φ
 
+  -- The initial node is secured 0 steps in any direction: we are in the bar.
   bar-theorem [] (η ze) f =
     η (f 0⋯)
 
+  -- The initial node is secured n+1 steps in any direction: we apply the ϝ
+  -- rule n times to reach the bar.
   bar-theorem [] (η (su_ n)) f =
     ϝ λ x →
       bar-theorem _ (η n) {!!}
 
+  -- An m+1-node is secured 0 steps in any direction: we have already been in the bar
+  -- for n steps, and must retrace our steps.
   bar-theorem (U ⌢ x) (η ze) f =
     ζ (bar-theorem U (η ze) f)
 
+  -- An m+1 node is secured n steps in any direction: I have no idea what to do.
   bar-theorem (U ⌢ x) (η (su_ n)) f =
-    {!!}
+    let
+      ih = bar-theorem U (η n) {!!}
+    in {!!}
 
-    -- TODO:
-    --   1. in case n > len(U), we are not yet in the bar; we must apply ϝ by (n - len(U)) times
-    --   2. in case n == len(U), then we have just made it into the bar, and we apply η.
-    --   3. in case n < len(U), we are already in the bar and need to apply ζ by (len(U) - n) times.
   bar-theorem U (ϝ κ) f =
     ϝ λ x →
       bar-theorem
