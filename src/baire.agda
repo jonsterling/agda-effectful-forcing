@@ -171,3 +171,8 @@ cons-snoc-prepend-law : ∀ U {α x n} → take n (U ⊕< (cons x α)) ≡ take 
 cons-snoc-prepend-law [] = refl
 cons-snoc-prepend-law (x ∷ U) {n = ze} = refl
 cons-snoc-prepend-law (x ∷ U) {α = α} {x = y} {n = su_ n} rewrite cons-snoc-prepend-law U {α = α} {x = y} {n = n} = refl
+
+take-snoc-tail-law : ∀ U α n → take n (U ⊕< α) ≡ take n ((U ⌢ α 0) ⊕< tail α)
+take-snoc-tail-law U α ze = refl
+take-snoc-tail-law [] α (su_ n) = refl
+take-snoc-tail-law (x ∷ U) α (su_ n) rewrite take-snoc-tail-law U α n = refl

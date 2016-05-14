@@ -2,6 +2,8 @@ module Brouwer where
 
 open import Prelude.List
 open import Prelude.Natural
+open import Prelude.Monoidal
+open import Prelude.Path
 
 open import Snoc
 open import Dialogue
@@ -52,3 +54,37 @@ _⊨_◃_ : 𝔅ₙ Nat → List Nat → (List Nat → Set) → Set
 
 _⊨_bar : 𝔅ₙ Nat → (List Nat → Set) → Set
 δ ⊨ φ bar = δ ⊨ [] ◃ φ
+
+module _ {φ : List Nat → Set} (φ-mono : monotone φ) where
+  soundness₁
+    : ∀ U
+    → ⊩ U ◃ φ
+    → 𝔅ₙ Nat
+  soundness₁ U (η x) =
+    η (List.len U)
+  soundness₁ U (ϝ κ) =
+    ϝ λ x →
+      soundness₁
+        (U ⌢ x)
+        (κ x)
+
+  soundness₂
+    : ∀ U
+    → (p : ⊩ U ◃ φ)
+    → soundness₁ U p ⊨ U ◃ φ
+  soundness₂ U (η p) α rewrite take-len-prepend U α = p
+  soundness₂ U (ϝ κ) α =
+    ≡.coe* φ
+      (take-snoc-tail-law U α n ≡.⁻¹)
+      (soundness₂ (U ⌢ α 0) (κ (α 0)) (tail α))
+    where
+      δ = soundness₁ (U ⌢ α 0) (κ (α 0))
+      n = 𝔇ₙ[ δ ] (tail α)
+
+  soundness
+    : ∀ {U}
+    → ⊩ U ◃ φ
+    → Σ[ 𝔅ₙ Nat ∋ δ ] δ ⊨ U ◃ φ
+  soundness p =
+    soundness₁ _ p
+      ▸ soundness₂ _ p
