@@ -39,7 +39,9 @@ module BarTheorem (φ : Species) (mono : monotone φ) where
   lemma1 (U ⌢ y) n x = {!!}
 
   lemma2 : ∀ U n x → η (su n) ⊨ U ◃ φ → η n ⊨ U ⌢ x ◃ φ
-  lemma2 = {!!}
+  lemma2 [] ze x f = {!!} -- true
+  lemma2 [] (su_ n) x f = {!!}
+  lemma2 (U ⌢ y) n x f = {!!}
 
   bar-theorem
     : ∀ U δ
@@ -47,8 +49,13 @@ module BarTheorem (φ : Species) (mono : monotone φ) where
     → ⊢ U ◃ φ
 
   -- The initial node is secured 0 steps in any direction: we are in the bar.
-  bar-theorem [] (η ze) f =
+  bar-theorem [] (η ze) f = -- GOOD TO GO
     η (f 0⋯)
+
+  -- An m+1-node is secured 0 steps in any direction: we have already been in the bar
+  -- for n steps, and must retrace our steps.
+  bar-theorem (U ⌢ x) (η ze) f = -- GOOD TO GO
+    ζ (bar-theorem U (η ze) f)
 
   -- The initial node is secured n+1 steps in any direction: we apply the ϝ
   -- rule n times to reach the bar.
@@ -56,20 +63,13 @@ module BarTheorem (φ : Species) (mono : monotone φ) where
     ϝ λ x →
       bar-theorem _ (η n) (lemma2 [] n x f)
 
-  -- An m+1-node is secured 0 steps in any direction: we have already been in the bar
-  -- for n steps, and must retrace our steps.
-  bar-theorem (U ⌢ x) (η ze) f =
-    ζ (bar-theorem U (η ze) f)
-
   -- An m+1 node is secured n steps in any direction: I have no idea what to do.
   bar-theorem (U ⌢ x) (η (su_ n)) f =
     ζ (bar-theorem U (η n) (lemma1 U n x f))
 
-  bar-theorem U (ϝ κ) f =
+  bar-theorem U (ϝ κ) f = -- GOOD TO GO
     ϝ λ x →
       bar-theorem
         (U ⌢ x)
         (κ x)
-        (≡.coe* φ {!!}
-           ∘ f
-           ∘ cons x)
+        (f ∘ cons x)
