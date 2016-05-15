@@ -14,10 +14,12 @@ open Π using (_∘_)
 
 import Baire
 import Dialogue as 𝓓
+
 open import System-T.Syntax
 
-id : {ℓ : _} {A : Set ℓ} → A → A
-id x = x
+private
+  id : {ℓ : _} {A : Set ℓ} → A → A
+  id x = x
 
 -- We construct the logical relations relative to a functor in which
 -- to interpret the base types.
@@ -48,7 +50,7 @@ rec f x (su n) = f n (rec f x n)
 module T where
   open LogicalRelations id public
 
-  ⟦_⟧ : ∀ {n τ} {Γ : Ctx n} → 𝔏.T ▹ Γ ⊢ᵀ τ → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
+  ⟦_⟧ : ∀ {n τ} {Γ : Ctx n} → 𝓛.T ▹ Γ ⊢ᵀ τ → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
   ⟦ zero ⟧ _ = ze
   ⟦ succ ⟧ _ = su_
   ⟦ rec[ σ ] ⟧ _ = rec
@@ -56,7 +58,7 @@ module T where
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
 
-  ⟦_⟧₀ : ∀ {τ} → 𝔏.T ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
+  ⟦_⟧₀ : ∀ {τ} → 𝓛.T ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
   ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
 
 module TΩ where

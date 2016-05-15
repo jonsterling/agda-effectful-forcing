@@ -1,15 +1,12 @@
 module System-T where
 
 open import Prelude.Natural
-open import Prelude.Monoidal hiding (_⇒_)
-import Prelude.Inspect as I
-open import Prelude.Maybe
+open import Prelude.Monoidal
 open import Prelude.Path
-open import Prelude.Decidable
 
+import Dialogue as 𝓓
 open import Baire
 open import Securability
-import Dialogue as 𝓓
 
 module BarTheorem (φ : Species) (φ-mono : monotone φ) where
   open Π using (_∘_)
