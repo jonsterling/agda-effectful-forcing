@@ -114,7 +114,9 @@ head : Point → Nat
 head α = α 0
 
 tail : Point → Point
-tail α i = α (su i)
+tail α = α ∘ su_
+
+{-# DISPLAY _∘_ α su_ = tail α #-}
 
 take : Nat → Point → List Nat
 take ze α = []

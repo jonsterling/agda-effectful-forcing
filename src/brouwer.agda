@@ -13,6 +13,8 @@ data SnocList (X : Set) : Set where
   [] : SnocList X
   _⌢_ : SnocList X → X → SnocList X
 
+infixl 5 _⌢_
+
 len : {X : Set} → SnocList X → Nat
 len [] = 0
 len (U ⌢ x) = su (len U)
@@ -70,6 +72,8 @@ prepend (U ⌢ x) α = prepend U (cons x α)
 _⊕<_ : Neigh → Point → Point
 U ⊕< α = prepend U α
 
+infixr 4 _⊕<_
+
 {-# DISPLAY prepend U α = U ⊕< α #-}
 
 take : Nat → Point → Neigh
@@ -79,14 +83,51 @@ take (su n) α = (take n α) ⌢ (α n)
 _⊨_◃_ : 𝔅ₙ Nat → Neigh → Species → Set
 δ ⊨ U ◃ φ =
   (α : Point)
-    → φ (take (𝔇ₙ[ δ ] α) (U ⊕< α))
+    → φ (take (𝔇ₙ[ δ ] α + len U) (U ⊕< α))
 
 -- δ ⊨ U ◃ φ means that δ computes the securability of U by φ.
 _⊨_bar : 𝔅ₙ Nat → Species → Set
 δ ⊨ φ bar =
   δ ⊨ [] ◃ φ
 
+𝔇ₙ-map-su : ∀ δ α → 𝔇ₙ[ map su_ δ ] α ≡ su (𝔇ₙ[ δ ] α)
+𝔇ₙ-map-su (η x) α = refl
+𝔇ₙ-map-su (ϝ κ) α rewrite 𝔇ₙ-map-su (κ (α 0)) (tail α) = refl
+
+_≈_ : Point → Point → Set
+α ≈ β = (i : Nat) → α i ≡ β i
+
+cons-expand : Point → Point
+cons-expand α = cons (α 0) (tail α)
+
+cons-expansion : ∀ α → cons-expand α ≈ α
+cons-expansion α ze = refl
+cons-expansion α (su_ n) = refl
+
+cons-cong : ∀ {x y α β} → x ≡ y → α ≈ β → cons x α ≈ cons y β
+cons-cong refl q ze = refl
+cons-cong refl q (su n) = q n
+
+take-cong : ∀ {α β} m n → m ≡ n → α ≈ β → take m α ≡ take n β
+take-cong ze .0 refl q = refl
+take-cong (su m) .(su m) refl q rewrite take-cong m _ refl q | q m = refl
+
+--take-cong α β ze p = refl
+--take-cong α β (su_ n) p rewrite take-cong α β n p | p n = refl
+
+prepend-cong : ∀ U V α β → U ≡ V → α ≈ β → prepend U α ≈ prepend V β
+prepend-cong [] .[] α β refl q = q
+prepend-cong (U ⌢ x) .(U ⌢ x) α β refl q = prepend-cong U U (cons x α) (cons x β) refl (cons-cong refl q)
+
+prepend-cons-eq : ∀ U α → (U ⊕< cons (α 0) (tail α)) ≈ (U ⊕< α)
+prepend-cons-eq U α = prepend-cong U U (cons (α 0) (tail α)) α refl (cons-expansion α)
+
+take-snoc-tail : ∀ U n α → take n ((U ⌢ α 0) ⊕< tail α) ≡ take n (U ⊕< α)
+take-snoc-tail U ze α = refl
+take-snoc-tail U (su_ n) α rewrite take-snoc-tail U n α | prepend-cons-eq U α n = refl
+
 module _ {φ : Species} (φ-mono : monotone φ) where
+
   soundness₁
     : ∀ U
     → ⊩ U ◃ φ
@@ -122,3 +163,4 @@ module _ {φ : Species} (φ-mono : monotone φ) where
       ▸ soundness₂ _ p
 
 -}
+

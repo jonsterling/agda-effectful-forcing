@@ -20,56 +20,63 @@ open import System-T.Semantics
 module BarTheorem (φ : Species) (mono : monotone φ) where
   open Normalize {φ} mono
   open Π using (_∘_)
+  open Nat using (_+_)
 
   0⋯ : Point
   0⋯ _ = 0
 
+  ⌢-cong : ∀ {U V : Neigh} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
+  ⌢-cong refl refl = refl
 
-  -- The following should hold; if it does not, then we have got the
-  -- wrong definitions!
-  ⊨-mono : ∀ δ U x → δ ⊨ U ◃ φ → δ ⊨ U ⌢ x ◃ φ
-  ⊨-mono (η n) U x f α = f (cons x α)
-  ⊨-mono (ϝ κ) U x f α = {!!}
+  nth-cong : ∀ (α β : Point) {i j : Nat} → α ≈ β → i ≡ j → α i ≡ β j
+  nth-cong α β h refl = h _
 
-  -- I don't know if the following two lemmas should be true, but they
-  -- seem to be needed.
-  lemma1 : ∀ U n x → η (su n) ⊨ U ⌢ x ◃ φ → η n ⊨ U ◃ φ
-  lemma1 [] ze x f = {!!}
-  lemma1 [] (su_ n) x f = {!!}
-  lemma1 (U ⌢ y) n x = {!!}
+  su-+-transpose : ∀ m n → su (n + m) ≡ n + su m
+  su-+-transpose ze ze = refl
+  su-+-transpose ze (su_ n) rewrite su-+-transpose ze n = refl
+  su-+-transpose (su m) ze = refl
+  su-+-transpose (su m) (su_ n) rewrite su-+-transpose (su m) n = refl
 
-  lemma2 : ∀ U n x → η (su n) ⊨ U ◃ φ → η n ⊨ U ⌢ x ◃ φ
-  lemma2 [] ze x f = {!!} -- true
-  lemma2 [] (su_ n) x f = {!!}
-  lemma2 (U ⌢ y) n x f = {!!}
+  prepend-+-len : ∀ U n {α} → (U ⊕< α) (n + len U) ≡ α n
+  prepend-+-len [] n rewrite Nat.⊢.ρ⇒ {n} = refl
+  prepend-+-len (U ⌢ x) n {α} =
+    prepend-+-len U (su n) {cons x α} ≡.⟔
+      nth-cong
+        (U ⌢ x ⊕< α)
+        (U ⌢ x ⊕< α)
+        (λ i → refl)
+        (su-+-transpose (len U) n ≡.⁻¹)
+
+  prepend-take-len : ∀ U {α} → take (len U) (U ⊕< α) ≡ U
+  prepend-take-len [] = refl
+  prepend-take-len (U ⌢ x) = ⌢-cong (prepend-take-len U) (prepend-+-len U 0)
+
 
   bar-theorem
     : ∀ U δ
-    → δ ⊨ U ◃ φ -- I have a nagging suspicion that the definition of this premise is wrong.
+    → δ ⊨ U ◃ φ
     → ⊢ U ◃ φ
 
-  -- The initial node is secured 0 steps in any direction: we are in the bar.
-  bar-theorem [] (η ze) f = -- GOOD TO GO
+  bar-theorem [] (η ze) f =
     η (f 0⋯)
 
-  -- An m+1-node is secured 0 steps in any direction: we have already been in the bar
-  -- for n steps, and must retrace our steps.
-  bar-theorem (U ⌢ x) (η ze) f = -- GOOD TO GO
-    ζ (bar-theorem U (η ze) f)
+  bar-theorem (U ⌢ x) (η ze) f =
+    η (≡.coe* φ (prepend-take-len _) (f 0⋯))
 
-  -- The initial node is secured n+1 steps in any direction: we apply the ϝ
-  -- rule n times to reach the bar.
-  bar-theorem [] (η (su_ n)) f =
+  bar-theorem U (η (su_ n)) f =
     ϝ λ x →
-      bar-theorem _ (η n) (lemma2 [] n x f)
+      bar-theorem (U ⌢ x) (η n)
+        (≡.coe* φ
+           (take-cong _ _
+              (su-+-transpose _ n)
+              (λ _ → refl))
+           ∘ f
+           ∘ cons x)
 
-  -- An m+1 node is secured n steps in any direction: I have no idea what to do.
-  bar-theorem (U ⌢ x) (η (su_ n)) f =
-    ζ (bar-theorem U (η n) (lemma1 U n x f))
-
-  bar-theorem U (ϝ κ) f = -- GOOD TO GO
+  bar-theorem U (ϝ κ) f =
     ϝ λ x →
-      bar-theorem
-        (U ⌢ x)
-        (κ x)
-        (f ∘ cons x)
+      bar-theorem (U ⌢ x) (κ x) λ α →
+        ≡.coe*
+          (λ n → φ (take n (U ⊕< cons x α)))
+          (su-+-transpose _ (𝔇ₙ[ κ x ] α))
+          (mono (f (cons x α)))
