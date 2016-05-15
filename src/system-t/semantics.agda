@@ -12,7 +12,7 @@ import Context as Ctx
 open Ctx hiding (⋄; _,_)
 open Π using (_∘_)
 
-open import Baire
+import Baire
 open import Dialogue
 open import System-T.Syntax
 
@@ -61,6 +61,7 @@ module T where
 
 module TΩ where
   open LogicalRelations id public
+  open Baire
 
   ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → Point → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
   ⟦ zero ⟧ α ρ = ze
@@ -74,30 +75,11 @@ module TΩ where
   ⟦_⟧₀ : ∀ {𝔏 τ} → 𝔏 ▹ Ctx.⋄ ⊢ᵀ τ → Point → 𝒱.⟦ τ ⟧
   ⟦ t ⟧₀ α = ⟦ t ⟧ α 𝒢.⋄
 
-module 𝔅 where
-  open LogicalRelations 𝔅 public
+module 𝓑 where
+  open Baire
+  open LogicalRelations 𝓑 public
 
-  Ext[_] : {X : Set} (τ : Type) → (X → 𝒱.⟦ τ ⟧) → 𝔅 X → 𝒱.⟦ τ ⟧
-  Ext[ ` _ ] f x = x ≫= f
-  Ext[ σ ⇒ τ ] g δ s = Ext[ τ ] (λ x → g x s) δ
-
-  ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
-  ⟦ zero ⟧ ρ = η ze
-  ⟦ succ ⟧ ρ = map su_
-  ⟦ rec[ σ ] ⟧ ρ ih z = Ext[ σ ] (rec (ih ∘ η) z)
-  ⟦ ν i ⟧ ρ = ρ i
-  ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
-  ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
-  ⟦ Ω ⟧ ρ = Ext[ ` nat ] (ϝ η)
-
-  ⟦_⟧₀ : ∀ {𝔏 τ} → 𝔏 ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
-  ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
-
-
-module 𝔅ₙ where
-  open LogicalRelations 𝔅ₙ public
-
-  Ext[_] : {X : Set} (τ : Type) → (X → 𝒱.⟦ τ ⟧) → 𝔅ₙ X → 𝒱.⟦ τ ⟧
+  Ext[_] : {X : Set} (τ : Type) → (X → 𝒱.⟦ τ ⟧) → 𝓑 X → 𝒱.⟦ τ ⟧
   Ext[ ` 𝔟 ] f x = x ≫= f
   Ext[ σ ⇒ τ ] g δ s = Ext[ τ ] (λ x → g x s) δ
 
@@ -110,16 +92,9 @@ module 𝔅ₙ where
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
   ⟦ Ω ⟧ ρ = Ext[ ` nat ] go
     where
-      go : Nat → 𝔅ₙ Nat
+      go : Nat → 𝓑 Nat
       go ze = ϝ η
       go (su i) = ϝ λ α₀ → go i
 
   ⟦_⟧₀ : ∀ {𝔏 τ} → 𝔏 ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
   ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
-
-
-test : 𝔅ₙ Nat
-test = 𝔅ₙ.⟦ Ω · (succ · zero) ⟧₀
-
-test2 : Nat
-test2 = 𝔇ₙ[ test ] (λ x → x)

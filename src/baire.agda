@@ -1,6 +1,5 @@
 module Baire where
 
-open import Prelude.List
 open import Prelude.Monoidal
 open import Prelude.Natural
 open import Prelude.Path
@@ -9,172 +8,179 @@ open import Prelude.Functor
 open import Prelude.Monad
 
 open import Dialogue
-open import Snoc
 
 open Π using (_∘_)
 
 -- The Baire Space is Brouwer's universal spread.
 
-Seq : Set → Set
-Seq X = Nat → X
-
--- A point in the Baire spread is a sequence of natural numbers.
-Point : Set
-Point = Seq Nat
-
--- The type of mental constructions (dialogues) of functionals on the Baire spread.
-𝔅 : Set → Set
-𝔅 = 𝔇 Nat Nat
-
-𝔅ₙ : Set → Set
-𝔅ₙ = 𝔇ₙ Nat
+-- A mental construction of a functional on the Baire space
+𝓑 : Set → Set
+𝓑 = 𝓓 Nat
 
 instance
-  𝔅ₙ-Functor : Functor 𝔅ₙ
-  Functor.map 𝔅ₙ-Functor f (η x) = η (f x)
-  Functor.map 𝔅ₙ-Functor f (ϝ φ) = ϝ λ x → map f (φ x)
+  𝔅-Functor : Functor 𝓑
+  Functor.map 𝔅-Functor f (η n) = η (f n)
+  Functor.map 𝔅-Functor f (ϝ 𝓭[_]) = ϝ λ x → map f 𝓭[ x ]
 
-  𝔅ₙ-Monad : Monad 𝔅ₙ
-  Monad.return_ 𝔅ₙ-Monad = η
-  Monad.bind 𝔅ₙ-Monad κ (η x) = κ x
-  Monad.bind 𝔅ₙ-Monad κ (ϝ φ) = ϝ λ x → Monad.bind 𝔅ₙ-Monad κ (φ x)
+  𝓑-Monad : Monad 𝓑
+  Monad.return_ 𝓑-Monad = η
+  Monad.bind 𝓑-Monad κ (η n) = κ n
+  Monad.bind 𝓑-Monad κ (ϝ 𝓭[_]) = ϝ λ x → Monad.bind 𝓑-Monad κ 𝓭[ x ]
 
-instance
-  𝔅-Functor : Functor 𝔅
-  Functor.map 𝔅-Functor f (η x) = η (f x)
-  Functor.map 𝔅-Functor f (ϝ φ i) = map f (φ i)
+module Neigh where
+  data Neigh : Set where
+    [] : Neigh
+    _⌢_ : Neigh → Nat → Neigh
 
-  𝔅-Monad : Monad 𝔅
-  Monad.return_ 𝔅-Monad = η
-  Monad.bind 𝔅-Monad κ (η x) = κ x
-  Monad.bind 𝔅-Monad κ (ϝ φ i) = ϝ (λ j → Monad.bind 𝔅-Monad κ (φ j)) i
+  infixl 5 _⌢_
 
-infixr 3 _⊩_≡_
+  len : Neigh → Nat
+  len [] = 0
+  len (U ⌢ x) = su (len U)
 
-data _⊩_≡_ {X : Set} : List Nat → Seq X → Seq X → Set where
-  []
-    : {α β : Seq X}
-    → [] ⊩ α ≡ β
+  ∣_∣ : Neigh → Nat
+  ∣_∣ = len
 
-  _∷_
-    : {α β : Seq X} {i : Nat} {U : List Nat}
-    → α i ≡ β i
-    → U ⊩ α ≡ β
-    → i ∷ U ⊩ α ≡ β
+  {-# DISPLAY len U = ∣ U ∣ #-}
 
--- The usual ∀∃ definition of continuity on the Baire spread.
-continuous : (Point → Nat) → Set
-continuous f =
-  (α : Point) →
-    Σ[ List Nat ∋ U ]
-      ((β : Point) → U ⊩ α ≡ β → f α ≡ f β)
+  module ⊢ where
+    _⟨⌢⟩_ : ∀ {U V : Neigh} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
+    refl ⟨⌢⟩ refl = refl
 
--- Every dialogue is continuous.
-𝔇-continuity : (δ : 𝔅 Nat) → continuous 𝔇[ δ ]
-𝔇-continuity (η n) α = [] ▸ λ β p → refl
-𝔇-continuity (ϝ φ i) α = i ∷ U ▸ λ { β (p ∷ ps) → criss β ps ≡.⟓ cross β p }
-  where
-    IH : continuous 𝔇[ φ (α i) ]
-    IH = 𝔇-continuity (φ (α i))
+module Point where
+  -- A point in the Baire spread is a sequence of natural numbers.
+  Point : Set
+  Point = Seq Nat
 
-    U : List Nat
-    U = Σ.fst (IH α)
+  head : Point → Nat
+  head α = α 0
 
-    criss : (β : Point) → U ⊩ α ≡ β → 𝔇[ φ (α i) ] α ≡ 𝔇[ φ (α i) ] β
-    criss = Σ.snd (IH α)
+  tail : Point → Point
+  tail α = α ∘ su_
 
-    cross : (β : Point) → α i ≡ β i → 𝔇[ φ (α i) ] β ≡ 𝔇[ φ (β i) ] β
-    cross β = ≡.ap¹ (λ n → 𝔇[ φ n ] β)
+  cons : Nat → Point → Point
+  cons x α ze = x
+  cons x α (su i) = α i
 
--- Continuity respects extensional equivalence of functionals.
-continuity-extensional
-  : {f g : Point → Nat}
-  → ((α : Point) → f α ≡ g α)
-  → continuous f
-  → continuous g
-continuity-extensional f≡g f-cont α with f-cont α
-... | U ▸ φ =
-  U ▸ λ β α≡[U]β →
-    f≡g α ⁻¹
-      ⟓ φ β α≡[U]β
-      ⟓ f≡g β
-  where
-    open ≡
+  _∷_ : Nat → Point → Point
+  _∷_ = cons
 
--- Every «eloquent» functional is continuous, because it can be coded as a dialogue.
-eloquent⇒continuous
-  : {f : Point → Nat}
-  → eloquent f
-  → continuous f
-eloquent⇒continuous (δ ▸ δ≡) =
-  continuity-extensional δ≡ (𝔇-continuity δ)
+  {-# DISPLAY cons x α = x ∷ α #-}
+
+  _≈_ : Point → Point → Set
+  α ≈ β = (i : Nat) → α i ≡ β i
 
 
-head : Point → Nat
-head α = α 0
+  open Neigh hiding (module ⊢)
 
-tail : Point → Point
-tail α = α ∘ su_
+  prepend
+    : Neigh
+    → Point
+    → Point
+  prepend [] α i =
+    α i
+  prepend (U ⌢ x) α =
+    prepend U (cons x α)
 
-{-# DISPLAY _∘_ α su_ = tail α #-}
+  _⊕<_
+    : Neigh
+    → Point
+    → Point
+  _⊕<_ =
+    prepend
 
-take : Nat → Point → List Nat
-take ze α = []
-take (su n) α = head α ∷ take n (tail α)
+  infixr 4 _⊕<_
 
-TAKE : Nat
-TAKE = 0
+  {-# DISPLAY prepend U α = U ⊕< α #-}
 
-{-# DISPLAY take x y = TAKE x y #-}
+  take
+    : Nat
+    → Point
+    → Neigh
+  take ze α = []
+  take (su n) α = (take n α) ⌢ (α n)
 
-pt : List Nat → Point
-pt [] i = 0
-pt (x ∷ U) ze = x
-pt (x ∷ U) (su_ i) = pt U i
+  _[_]
+    : Point
+    → Nat
+    → Neigh
+  α [ n ] = take n α
 
-take-pt-id : ∀ U → take (List.len U) (pt U) ≡ U
-take-pt-id [] = refl
-take-pt-id (x ∷ U) rewrite take-pt-id U = refl
+  {-# DISPLAY take n α = α [ n ] #-}
 
-take-pt-snoc-id : ∀ U y → take (List.len U) (pt (U ⌢ y)) ≡ U
-take-pt-snoc-id [] _ = refl
-take-pt-snoc-id (x ∷ U) y rewrite take-pt-snoc-id U y = refl
+  module ⊢ where
+    nth-cong
+      : (α β : Point) {i j : Nat}
+      → α ≈ β
+      → i ≡ j
+      → α i ≡ β j
+    nth-cong α β h refl =
+      h _
 
-snoc-cons-id : ∀ (U : List Nat) x y → x ∷ (U ⌢ y) ≡ (x ∷ U) ⌢ y
-snoc-cons-id [] x y = refl
-snoc-cons-id (x ∷ U) y z rewrite snoc-cons-id U x z = refl
+    take-cong
+      : ∀ {α β m n}
+      → m ≡ n
+      → α ≈ β
+      → take m α ≡ take n β
+    take-cong {m = ze} {n = .0} refl q = refl
+    take-cong {m = (su m)} {n = .(su m)} refl q
+      rewrite take-cong {m = m} refl q
+        | q m
+        = refl
 
-cons : Nat → Point → Point
-cons x α ze = x
-cons x α (su_ i) = α i
+    open Nat using (_+_)
 
-prepend : List Nat → Point → Point
-prepend [] α = α
-prepend (x ∷ xs) α = cons x (prepend xs α)
+    su-+-transpose
+      : ∀ m n
+      → su (n + m) ≡ n + su m
+    su-+-transpose ze ze = refl
+    su-+-transpose ze (su_ n)
+      rewrite su-+-transpose ze n
+        = refl
+    su-+-transpose (su m) ze = refl
+    su-+-transpose (su m) (su_ n)
+      rewrite su-+-transpose (su m) n
+        = refl
 
-_⊕<_ : List Nat → Point → Point
-U ⊕< α = prepend U α
+    prepend-len
+      : ∀ U n {α}
+      → (U ⊕< α) (n + ∣ U ∣) ≡ α n
+    prepend-len [] n
+      rewrite Nat.⊢.ρ⇒ {n}
+        = refl
+    prepend-len (U ⌢ x) n =
+      prepend-len U (su n) ≡.⟔
+        nth-cong
+          (U ⌢ x ⊕< _)
+          _
+          (λ i → refl)
+          (su-+-transpose ∣ U ∣ n ≡.⁻¹)
 
-{-# DISPLAY prepend U α = U ⊕< α #-}
-{-# DISPLAY cons x α  = x ∷ α #-}
+    prepend-take-len
+      : ∀ U {α}
+      → take ∣ U ∣ (U ⊕< α) ≡ U
+    prepend-take-len [] = refl
+    prepend-take-len (U ⌢ x) =
+      prepend-take-len U
+        Neigh.⊢.⟨⌢⟩ prepend-len U 0
 
-take-len-prepend : ∀ U α → take (List.len U) (U ⊕< α) ≡ U
-take-len-prepend [] α = refl
-take-len-prepend (x ∷ U) α rewrite take-len-prepend U α = refl
 
-postulate
-  take-prepend-lemma : ∀ U n α β → n Nat.< List.len U → take n (U ⊕< α) ≡ take n (U ⊕< β)
+module Species where
+  open Neigh
 
-take-len-cons-prepend : ∀ U α x → take (su (List.len U)) (cons x (U ⊕< α)) ≡ x ∷ U
-take-len-cons-prepend [] α x = refl
-take-len-cons-prepend (x ∷ U) α y rewrite take-len-cons-prepend U α y | take-len-prepend U α = refl
+  Species : Set₁
+  Species =
+    Neigh
+      → Set
 
-cons-snoc-prepend-law : ∀ U {α x n} → take n (U ⊕< (cons x α)) ≡ take n ((U ⌢ x) ⊕< α)
-cons-snoc-prepend-law [] = refl
-cons-snoc-prepend-law (x ∷ U) {n = ze} = refl
-cons-snoc-prepend-law (x ∷ U) {α = α} {x = y} {n = su_ n} rewrite cons-snoc-prepend-law U {α = α} {x = y} {n = n} = refl
+  monotone
+    : Species
+    → Set
+  monotone φ =
+    {U : Neigh} {x : Nat}
+      → φ U
+      → φ (U ⌢ x)
 
-take-snoc-tail-law : ∀ U α n → take n (U ⊕< α) ≡ take n ((U ⌢ α 0) ⊕< tail α)
-take-snoc-tail-law U α ze = refl
-take-snoc-tail-law [] α (su_ n) = refl
-take-snoc-tail-law (x ∷ U) α (su_ n) rewrite take-snoc-tail-law U α n = refl
+open Point public hiding (module ⊢)
+open Neigh public hiding (module Neigh; module ⊢)
+open Species public
