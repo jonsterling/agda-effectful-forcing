@@ -1,6 +1,5 @@
 module Baire where
 
-open import Prelude.List
 open import Prelude.Monoidal
 open import Prelude.Natural
 open import Prelude.Path
@@ -12,90 +11,160 @@ open import Dialogue
 
 open Π using (_∘_)
 
--- The Baire Space is Brouwer's universal spread. We define its points and
--- neighborhoods below.
+module Neigh where
+  data Neigh : Set where
+    [] : Neigh
+    _⌢_ : Neigh → Nat → Neigh
 
-Seq : Set → Set
-Seq X = Nat → X
+  infixl 5 _⌢_
 
--- A point in the Baire spread is a sequence of natural numbers.
-Point : Set
-Point = Seq Nat
+  len : Neigh → Nat
+  len [] = 0
+  len (U ⌢ x) = su (len U)
 
--- A neighborhood in the Baire spread is a finite list of natural numbers.
-Neigh : Set
-Neigh = List Nat
+  ∣_∣ : Neigh → Nat
+  ∣_∣ = len
 
--- The type of mental constructions (dialogues) of functionals on the Baire spread.
-𝔅 : Set → Set
-𝔅 = 𝔇 Nat Nat
+  {-# DISPLAY len U = ∣ U ∣ #-}
 
-instance
-  𝔅-Functor : Functor 𝔅
-  Functor.map 𝔅-Functor f (η x) = η (f x)
-  Functor.map 𝔅-Functor f (ϝ φ i) = map f (φ i)
+  module ⊢ where
+    _⟨⌢⟩_ : ∀ {U V : Neigh} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
+    refl ⟨⌢⟩ refl = refl
 
-  𝔅-Monad : Monad 𝔅
-  Monad.return_ 𝔅-Monad = η
-  Monad.bind 𝔅-Monad κ (η x) = κ x
-  Monad.bind 𝔅-Monad κ (ϝ φ i) = ϝ (λ j → Monad.bind 𝔅-Monad κ (φ j)) i
+module Point where
+  -- A point in the Baire spread is a sequence of natural numbers.
+  Point : Set
+  Point = Seq Nat
 
-infixr 3 _⊩_≡_
+  head : Point → Nat
+  head α = α 0
 
-data _⊩_≡_ {X : Set} : List Nat → Seq X → Seq X → Set where
-  []
-    : {α β : Seq X}
-    → [] ⊩ α ≡ β
+  tail : Point → Point
+  tail α = α ∘ su_
 
-  _∷_
-    : {α β : Seq X} {i : Nat} {U : List Nat}
-    → α i ≡ β i
-    → U ⊩ α ≡ β
-    → i ∷ U ⊩ α ≡ β
+  cons : Nat → Point → Point
+  cons x α ze = x
+  cons x α (su i) = α i
 
--- The usual ∀∃ definition of continuity on the Baire spread.
-continuous : (Point → Nat) → Set
-continuous f =
-  (α : Point) →
-    Σ[ List Nat ∋ U ]
-      ((β : Point) → U ⊩ α ≡ β → f α ≡ f β)
+  _∷_ : Nat → Point → Point
+  _∷_ = cons
 
--- Every dialogue is continuous.
-𝔇-continuity : (δ : 𝔅 Nat) → continuous 𝔇[ δ ]
-𝔇-continuity (η n) α = [] ▸ λ β p → refl
-𝔇-continuity (ϝ φ i) α = i ∷ U ▸ λ { β (p ∷ ps) → criss β ps ≡.⟓ cross β p }
-  where
-    IH : continuous 𝔇[ φ (α i) ]
-    IH = 𝔇-continuity (φ (α i))
+  {-# DISPLAY cons x α = x ∷ α #-}
 
-    U : List Nat
-    U = Σ.fst (IH α)
+  _≈_ : Point → Point → Set
+  α ≈ β = (i : Nat) → α i ≡ β i
 
-    criss : (β : Point) → U ⊩ α ≡ β → 𝔇[ φ (α i) ] α ≡ 𝔇[ φ (α i) ] β
-    criss = Σ.snd (IH α)
 
-    cross : (β : Point) → α i ≡ β i → 𝔇[ φ (α i) ] β ≡ 𝔇[ φ (β i) ] β
-    cross β = ≡.ap¹ (λ n → 𝔇[ φ n ] β)
+  open Neigh hiding (module ⊢)
 
--- Continuity respects extensional equivalence of functionals.
-continuity-extensional
-  : {f g : Point → Nat}
-  → ((α : Point) → f α ≡ g α)
-  → continuous f
-  → continuous g
-continuity-extensional f≡g f-cont α with f-cont α
-... | U ▸ φ =
-  U ▸ λ β α≡[U]β →
-    f≡g α ⁻¹
-      ⟓ φ β α≡[U]β
-      ⟓ f≡g β
-  where
-    open ≡
+  prepend
+    : Neigh
+    → Point
+    → Point
+  prepend [] α i =
+    α i
+  prepend (U ⌢ x) α =
+    prepend U (cons x α)
 
--- Every «eloquent» functional is continuous, because it can be coded as a dialogue.
-eloquent⇒continuous
-  : {f : Point → Nat}
-  → eloquent f
-  → continuous f
-eloquent⇒continuous (δ ▸ δ≡) =
-  continuity-extensional δ≡ (𝔇-continuity δ)
+  _⊕<_
+    : Neigh
+    → Point
+    → Point
+  _⊕<_ =
+    prepend
+
+  infixr 4 _⊕<_
+
+  {-# DISPLAY prepend U α = U ⊕< α #-}
+
+  take
+    : Nat
+    → Point
+    → Neigh
+  take ze α = []
+  take (su n) α = (take n α) ⌢ (α n)
+
+  _[_]
+    : Point
+    → Nat
+    → Neigh
+  α [ n ] = take n α
+
+  {-# DISPLAY take n α = α [ n ] #-}
+
+  module ⊢ where
+    nth-cong
+      : (α β : Point) {i j : Nat}
+      → α ≈ β
+      → i ≡ j
+      → α i ≡ β j
+    nth-cong α β h refl =
+      h _
+
+    take-cong
+      : ∀ {α β m n}
+      → m ≡ n
+      → α ≈ β
+      → take m α ≡ take n β
+    take-cong {m = ze} {n = .0} refl q = refl
+    take-cong {m = (su m)} {n = .(su m)} refl q
+      rewrite take-cong {m = m} refl q
+        | q m
+        = refl
+
+    open Nat using (_+_)
+
+    su-+-transpose
+      : ∀ m n
+      → su (n + m) ≡ n + su m
+    su-+-transpose ze ze = refl
+    su-+-transpose ze (su_ n)
+      rewrite su-+-transpose ze n
+        = refl
+    su-+-transpose (su m) ze = refl
+    su-+-transpose (su m) (su_ n)
+      rewrite su-+-transpose (su m) n
+        = refl
+
+    prepend-len
+      : ∀ U n {α}
+      → (U ⊕< α) (n + ∣ U ∣) ≡ α n
+    prepend-len [] n
+      rewrite Nat.⊢.ρ⇒ {n}
+        = refl
+    prepend-len (U ⌢ x) n =
+      prepend-len U (su n) ≡.⟔
+        nth-cong
+          (U ⌢ x ⊕< _)
+          _
+          (λ i → refl)
+          (su-+-transpose ∣ U ∣ n ≡.⁻¹)
+
+    prepend-take-len
+      : ∀ U {α}
+      → take ∣ U ∣ (U ⊕< α) ≡ U
+    prepend-take-len [] = refl
+    prepend-take-len (U ⌢ x) =
+      prepend-take-len U
+        Neigh.⊢.⟨⌢⟩ prepend-len U 0
+
+
+module Species where
+  open Neigh
+
+  Species : Set₁
+  Species =
+    Neigh
+      → Set
+
+  monotone
+    : Species
+    → Set
+  monotone φ =
+    {U : Neigh} {x : Nat}
+      → φ U
+      → φ (U ⌢ x)
+
+open Point public hiding (module ⊢)
+open Neigh public hiding (module Neigh; module ⊢)
+open Species public

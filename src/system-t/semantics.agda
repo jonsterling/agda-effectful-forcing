@@ -12,12 +12,14 @@ import Context as Ctx
 open Ctx hiding (⋄; _,_)
 open Π using (_∘_)
 
-open import Baire
-open import Dialogue
+import Baire
+import Dialogue as 𝓓
+
 open import System-T.Syntax
 
-id : {ℓ : _} {A : Set ℓ} → A → A
-id x = x
+private
+  id : {ℓ : _} {A : Set ℓ} → A → A
+  id x = x
 
 -- We construct the logical relations relative to a functor in which
 -- to interpret the base types.
@@ -48,47 +50,91 @@ rec f x (su n) = f n (rec f x n)
 module T where
   open LogicalRelations id public
 
-  ⟦_⟧ : ∀ {n τ} {Γ : Ctx n} → 𝔏.T ▹ Γ ⊢ᵀ τ → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
+  ⟦_⟧
+    : ∀ {n τ} {Γ : Ctx n}
+    → 𝓛.T ▹ Γ ⊢ᵀ τ
+    → 𝒢.⟦ Γ ⟧
+    → 𝒱.⟦ τ ⟧
   ⟦ zero ⟧ _ = ze
   ⟦ succ ⟧ _ = su_
   ⟦ rec[ σ ] ⟧ _ = rec
-  ⟦ ν i ⟧ ρ = ρ i
+  ⟦ ν i p ⟧ ρ rewrite p = ρ i
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
 
-  ⟦_⟧₀ : ∀ {τ} → 𝔏.T ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
+  ⟦_⟧₀
+    : ∀ {τ}
+    → 𝓛.T ▹ Ctx.⋄ ⊢ᵀ τ
+    → 𝒱.⟦ τ ⟧
   ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
 
 module TΩ where
   open LogicalRelations id public
+  open Baire
 
-  ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → Point → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
+  ⟦_⟧
+    : ∀ {𝓛 n τ} {Γ : Ctx n}
+    → 𝓛 ▹ Γ ⊢ᵀ τ
+    → Point
+    → 𝒢.⟦ Γ ⟧
+    → 𝒱.⟦ τ ⟧
   ⟦ zero ⟧ α ρ = ze
   ⟦ succ ⟧ α ρ = su_
   ⟦ rec[ σ ] ⟧ α ρ = rec
-  ⟦ ν i ⟧ α ρ = ρ i
+  ⟦ ν i p ⟧ α ρ rewrite p = ρ i
   ⟦ ƛ t ⟧ α ρ = λ x → ⟦ t ⟧ α (ρ 𝒢., x)
   ⟦ m · n ⟧ α ρ = ⟦ m ⟧ α ρ (⟦ n ⟧ α ρ)
   ⟦ Ω ⟧ α ρ = α
 
-  ⟦_⟧₀ : ∀ {𝔏 τ} → 𝔏 ▹ Ctx.⋄ ⊢ᵀ τ → Point → 𝒱.⟦ τ ⟧
+  ⟦_⟧₀
+    : ∀ {𝓛 τ}
+    → 𝓛 ▹ Ctx.⋄ ⊢ᵀ τ
+    → Point
+    → 𝒱.⟦ τ ⟧
   ⟦ t ⟧₀ α = ⟦ t ⟧ α 𝒢.⋄
 
-module 𝔅 where
-  open LogicalRelations 𝔅 public
+module 𝓑 where
+  open Baire
+  open LogicalRelations 𝓓.𝓑 public
 
-  Ext[_] : {X : Set} (τ : Type) → (X → 𝒱.⟦ τ ⟧) → 𝔅 X → 𝒱.⟦ τ ⟧
-  Ext[ ` _ ] f x = x ≫= f
+  Ext[_]
+    : {X : Set} (τ : Type)
+    → (X → 𝒱.⟦ τ ⟧)
+    → 𝓓.𝓑 X
+    → 𝒱.⟦ τ ⟧
+  Ext[ ` 𝔟 ] f x = x ≫= f
   Ext[ σ ⇒ τ ] g δ s = Ext[ τ ] (λ x → g x s) δ
 
-  ⟦_⟧ : ∀ {𝔏 n τ} {Γ : Ctx n} → 𝔏 ▹ Γ ⊢ᵀ τ → 𝒢.⟦ Γ ⟧ → 𝒱.⟦ τ ⟧
-  ⟦ zero ⟧ ρ = η ze
+  ⟦_⟧
+    : ∀ {𝓛 n τ} {Γ : Ctx n}
+    → 𝓛 ▹ Γ ⊢ᵀ τ
+    → 𝒢.⟦ Γ ⟧
+    → 𝒱.⟦ τ ⟧
+  ⟦ zero ⟧ ρ = 𝓓.η ze
   ⟦ succ ⟧ ρ = map su_
-  ⟦ rec[ σ ] ⟧ ρ ih z = Ext[ σ ] (rec (ih ∘ η) z)
-  ⟦ ν i ⟧ ρ = ρ i
+  ⟦ rec[ σ ] ⟧ ρ ih z = Ext[ σ ] (rec (ih ∘ 𝓓.η_) z)
+  ⟦ ν i p ⟧ ρ rewrite p = ρ i
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
-  ⟦ Ω ⟧ ρ = Ext[ ` nat ] (ϝ η)
+  ⟦ Ω ⟧ ρ = Ext[ ` nat ] go
+    where
+      go : Nat → 𝓓.𝓑 Nat
+      go ze = 𝓓.ϝ 𝓓.η_
+      go (su i) = 𝓓.ϝ λ α₀ → go i
 
-  ⟦_⟧₀ : ∀ {𝔏 τ} → 𝔏 ▹ Ctx.⋄ ⊢ᵀ τ → 𝒱.⟦ τ ⟧
+  ⟦_⟧₀
+    : ∀ {𝓛 τ}
+    → 𝓛 ▹ Ctx.⋄ ⊢ᵀ τ
+    → 𝒱.⟦ τ ⟧
   ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
+
+
+open Baire
+
+-- The following theorem must be proved via logical relations, following Escardó's
+-- proof here: http://www.cs.bham.ac.uk/~mhe/dialogue/dialogue-lambda.html#18185.
+postulate
+  coherence
+    : (α : Point)
+    → (F : 𝓛.TΩ ▹ Ctx.⋄ ⊢ᵀ ((` nat ⇒ ` nat) ⇒ ` nat))
+    → 𝓓.⟦ 𝓑.⟦ F · Ω ⟧₀ ⟧ α ≡ TΩ.⟦ F · Ω ⟧₀ α
