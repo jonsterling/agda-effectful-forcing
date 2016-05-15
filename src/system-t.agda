@@ -43,5 +43,5 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
       bar-theorem (U ⌢ x) (κ x) λ α →
         ≡.coe*
           (λ n → φ ((U ⊕< x ∷ α) [ n ]))
-          (Point.⊢.su-+-transpose _ (𝓓.𝓓[ κ x ] α))
+          (Point.⊢.su-+-transpose _ (𝓓.⟦ κ x ⟧ α))
           (φ-mono (f (x ∷ α)))

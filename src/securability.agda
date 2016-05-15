@@ -3,7 +3,7 @@ module Securability where
 open import Prelude.Natural
 
 open import Baire
-open import Dialogue
+open import Dialogue as 𝓓
 
 data ⊨_◃_ (U : Neigh) (φ : Species) : Set where
   η_ : φ U → ⊨ U ◃ φ
@@ -21,7 +21,7 @@ _⊩_◃_
   → Set
 𝓭 ⊩ U ◃ φ =
   (α : Point)
-    → φ ((U ⊕< α) [ 𝓓[ 𝓭 ] α + ∣ U ∣ ])
+    → φ ((U ⊕< α) [ 𝓓.⟦ 𝓭 ⟧ α + ∣ U ∣ ])
 
 -- δ ⊩ U ◃ φ means that δ computes the securability of U by φ.
 _⊩_bar : 𝓑 Nat → Species → Set

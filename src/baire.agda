@@ -11,22 +11,6 @@ open import Dialogue
 
 open Π using (_∘_)
 
--- The Baire Space is Brouwer's universal spread.
-
--- A mental construction of a functional on the Baire space
-𝓑 : Set → Set
-𝓑 = 𝓓 Nat
-
-instance
-  𝔅-Functor : Functor 𝓑
-  Functor.map 𝔅-Functor f (η n) = η (f n)
-  Functor.map 𝔅-Functor f (ϝ 𝓭[_]) = ϝ λ x → map f 𝓭[ x ]
-
-  𝓑-Monad : Monad 𝓑
-  Monad.return_ 𝓑-Monad = η
-  Monad.bind 𝓑-Monad κ (η n) = κ n
-  Monad.bind 𝓑-Monad κ (ϝ 𝓭[_]) = ϝ λ x → Monad.bind 𝓑-Monad κ 𝓭[ x ]
-
 module Neigh where
   data Neigh : Set where
     [] : Neigh
