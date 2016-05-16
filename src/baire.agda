@@ -7,7 +7,7 @@ open import Prelude.Path
 open import Prelude.Functor
 open import Prelude.Monad
 
-open import Dialogue
+import Dialogue as 𝓓
 
 open Π using (_∘_)
 
@@ -34,7 +34,7 @@ module Neigh where
 module Point where
   -- A point in the Baire spread is a sequence of natural numbers.
   Point : Set
-  Point = Seq Nat
+  Point = 𝓓.Seq Nat
 
   head : Point → Nat
   head α = α 0

@@ -1,9 +1,9 @@
 module System-T.Semantics where
 
 open import Prelude.Finite
-open import Prelude.Functor
+open import Prelude.Functor hiding (map)
+open import Prelude.Monad hiding (_≫=_)
 open import Prelude.Monoidal hiding (_⇒_; _,_)
-open import Prelude.Monad
 open import Prelude.Natural
 open import Prelude.String
 open import Prelude.Path
@@ -16,6 +16,9 @@ import Baire
 import Dialogue as 𝓓
 
 open import System-T.Syntax
+
+open Functor 𝓓.𝓓-functor
+open Monad 𝓓.𝓓-monad
 
 private
   id : {ℓ : _} {A : Set ℓ} → A → A
@@ -138,3 +141,68 @@ postulate
     : (α : Point)
     → (F : 𝓛.TΩ ▹ Ctx.⋄ ⊢ᵀ ((` nat ⇒ ` nat) ⇒ ` nat))
     → 𝓓.⟦ 𝓑.⟦ F · Ω ⟧₀ ⟧ α ≡ TΩ.⟦ F · Ω ⟧₀ α
+
+
+module Coherence where
+
+  -- Our logical relation. I have a feeling we may need to adjust either it,
+  -- or the interpretation.
+  𝓡[_]
+    : (σ : Type)
+    → (Point → T.𝒱.⟦ σ ⟧)
+    → 𝓑.𝒱.⟦ σ ⟧
+    → Set
+  𝓡[ ` 𝔟 ] F 𝓭 =
+    (α : Point)
+      → F α ≡ 𝓓.⟦ 𝓭 ⟧ α
+  𝓡[ σ ⇒ τ ] f g =
+    (F : Point → T.𝒱.⟦ σ ⟧)
+    (𝓭 : 𝓑.𝒱.⟦ σ ⟧)
+      → 𝓡[ σ ] F 𝓭
+      → 𝓡[ τ ] (λ α → f α (F α)) (g 𝓭)
+
+  𝓡⋆[_]
+    : {n : Nat}
+    → (Γ : Ctx n)
+    → (Point → TΩ.𝒢.⟦ Γ ⟧)
+    → 𝓑.𝒢.⟦ Γ ⟧
+    → Set
+  𝓡⋆[ Γ ] ρ₀ ρ₁ =
+    (i : Fin _)
+      → 𝓡[ Γ Ctx.[ i ] ] (λ α → ρ₀ α i) (ρ₁ i)
+
+  𝓡-Ext-lemma
+    : (σ : Type) (F[_] : Nat → Point → T.𝒱.⟦ σ ⟧) (𝓭[_] : Nat → 𝓑.𝒱.⟦ σ ⟧)
+    → (∀ k → 𝓡[ σ ] F[ k ] 𝓭[ k ])
+    → (F : Point → Nat)
+    → (𝓭 : 𝓓.𝓑 Nat)
+    → 𝓡[ ` nat ] F 𝓭
+    → 𝓡[ σ ] (λ α → F[ F α ] α) (𝓑.Ext[ σ ] 𝓭[_] 𝓭)
+  𝓡-Ext-lemma (` 𝔟) F[_] 𝓭[_] p F 𝓭 q = λ α → fact α
+    where
+      fact : ∀ α → F[ F α ] α ≡ 𝓓.⟦ 𝓭 ≫= 𝓭[_] ⟧ α
+      fact α = ≡.ap¹ (λ x → F[ x ] α) (q α) ≡.⟓ {!!}
+
+
+--    where
+--      fact₀ : ∀ α → 𝓓.⟦ 𝓭[ 𝓓.⟦ 𝓭 ⟧ α ] ⟧ α ≡ 𝓓.⟦ (𝓑.Ext[ (` 𝔟) ] 𝓭[_] 𝓭) ⟧ α
+--      fact₀ = {!!}
+
+  𝓡-Ext-lemma (σ ⇒ σ₁) F[_] 𝓭[_] p F 𝓭 q = {!!}
+
+  main-lemma
+    : {n : Nat} {Γ : Ctx n} {σ : Type}
+    → (M : 𝓛.TΩ ▹ Γ ⊢ᵀ σ)
+    → (ρ₀ : Point → TΩ.𝒢.⟦ Γ ⟧)
+    → (ρ₁ : 𝓑.𝒢.⟦ Γ ⟧)
+    → 𝓡⋆[ Γ ] ρ₀ ρ₁
+    → 𝓡[ σ ] (λ α → TΩ.⟦ M ⟧ α (ρ₀ α)) (𝓑.⟦ M ⟧ ρ₁)
+  main-lemma zero ρ₀ ρ₁ cr = {!!}
+  main-lemma succ ρ₀ ρ₁ cr = {!!}
+  main-lemma rec[ σ ] ρ₀ ρ₁ cr = {!!}
+  main-lemma (ν i x) ρ₀ ρ₁ cr = {!!}
+  main-lemma (ƛ M) ρ₀ ρ₁ cr = {!!}
+  main-lemma (M · M₁) ρ₀ ρ₁ cr = {!!}
+  main-lemma Ω ρ₀ ρ₁ cr = {!!}
+
+-- ⟓

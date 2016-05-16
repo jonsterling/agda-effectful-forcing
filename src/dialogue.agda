@@ -2,8 +2,9 @@ module Dialogue where
 
 open import Prelude.Functor
 open import Prelude.Monad
-open import Prelude.Natural
 open import Prelude.Monoidal
+open import Prelude.Natural
+open import Prelude.Path
 
 open Π using (_∘_)
 
@@ -35,11 +36,39 @@ eval (ϝ 𝓭[_]) α = eval (𝓭[ α 0 ]) (α ∘ su_)
 𝓑 = 𝓓 Nat
 
 instance
-  𝓓-functor : ∀ {X} → Functor (𝓓 X)
+  𝓓-functor : Functor 𝓑
   Functor.map 𝓓-functor f (η x) = η (f x)
   Functor.map 𝓓-functor f (ϝ 𝓭[_]) = ϝ λ x → map f 𝓭[ x ]
 
-  𝓓-monad : ∀ {X} → Monad (𝓓 X)
+  𝓓-monad : Monad 𝓑
   Monad.return_ 𝓓-monad = η_
   Monad.bind 𝓓-monad κ (η x) = κ x
   Monad.bind 𝓓-monad κ (ϝ 𝓭[_]) = ϝ λ x → Monad.bind 𝓓-monad κ 𝓭[ x ]
+
+{-# DISPLAY 𝓓-functor f 𝓭 = map f 𝓭 #-}
+{-# DISPLAY 𝓓-monad κ 𝓭 = 𝓭 ≫= κ #-}
+
+module ⊢ where
+
+  eval-natural
+    : {X Y : Set}
+    → (f : X → Y)
+    → (𝓭 : 𝓑 X)
+    → (α : Nat ^ω)
+    → f (⟦ 𝓭 ⟧ α) ≡ ⟦ map f 𝓭 ⟧ α
+  eval-natural f (η x) α =
+    refl
+  eval-natural f (ϝ 𝓭[_]) α =
+    eval-natural f 𝓭[ α 0 ] (α ∘ su_)
+
+{-
+  -- uh-oh! Is this even true?
+  eval-bind-law
+    : {X Y : Set}
+    → (𝓯[_] : X → 𝓑 Y)
+    → (𝓭 : 𝓑 X)
+    → (α : Nat ^ω)
+    → ⟦ 𝓯[ ⟦ 𝓭 ⟧ α ] ⟧ α ≡ ⟦ 𝓭 ≫= 𝓯[_] ⟧ α
+  eval-bind-law 𝓯[_] (η x) α = refl
+  eval-bind-law 𝓯[_] (ϝ 𝓭[_]) α = {!!}
+-}
