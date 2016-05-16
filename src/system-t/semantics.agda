@@ -106,7 +106,7 @@ module 𝓑 where
     → 𝓓.𝓑 X
     → 𝒱.⟦ τ ⟧
   Ext[ ` 𝔟 ] f x = x ≫= f
-  Ext[ σ ⇒ τ ] g δ s = Ext[ τ ] (λ x → g x s) δ
+  Ext[ σ ⇒ τ ] g 𝓭 s = Ext[ τ ] (λ x → g x s) 𝓭
 
   ⟦_⟧
     : ∀ {𝓛 n τ} {Γ : Ctx n}
@@ -119,7 +119,7 @@ module 𝓑 where
   ⟦ ν i p ⟧ ρ rewrite p = ρ i
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
-  ⟦ Ω ⟧ ρ = Ext[ ` nat ] go
+  ⟦ Ω ⟧ ρ i = i ≫= go
     where
       go : Nat → 𝓓.𝓑 Nat
       go ze = 𝓓.ϝ 𝓓.η_
@@ -143,7 +143,7 @@ postulate
     → 𝓓.⟦ 𝓑.⟦ F · Ω ⟧₀ ⟧ α ≡ TΩ.⟦ F · Ω ⟧₀ α
 
 
-module Coherence where
+module ⊢ where
 
   -- Our logical relation. I have a feeling we may need to adjust either it,
   -- or the interpretation.
@@ -197,12 +197,15 @@ module Coherence where
     → (ρ₁ : 𝓑.𝒢.⟦ Γ ⟧)
     → 𝓡⋆[ Γ ] ρ₀ ρ₁
     → 𝓡[ σ ] (λ α → TΩ.⟦ M ⟧ α (ρ₀ α)) (𝓑.⟦ M ⟧ ρ₁)
-  main-lemma zero ρ₀ ρ₁ cr = {!!}
-  main-lemma succ ρ₀ ρ₁ cr = {!!}
+  main-lemma zero ρ₀ ρ₁ cr α = refl
+  main-lemma succ ρ₀ ρ₁ cr F 𝓭 p α rewrite p α = 𝓓.⊢.eval-natural su_ 𝓭 α
   main-lemma rec[ σ ] ρ₀ ρ₁ cr = {!!}
-  main-lemma (ν i x) ρ₀ ρ₁ cr = {!!}
-  main-lemma (ƛ M) ρ₀ ρ₁ cr = {!!}
-  main-lemma (M · M₁) ρ₀ ρ₁ cr = {!!}
-  main-lemma Ω ρ₀ ρ₁ cr = {!!}
+  main-lemma (ν i p) ρ₀ ρ₁ cr rewrite p = cr i
+  main-lemma (ƛ t) ρ₀ ρ₁ cr = {!!}
+  main-lemma (m · n) ρ₀ ρ₁ cr = ih1 (λ z → TΩ.⟦ n ⟧ z (ρ₀ z)) (𝓑.⟦ n ⟧ ρ₁) ih2
+    where
+      ih1 = main-lemma m ρ₀ ρ₁ cr
+      ih2 = main-lemma n ρ₀ ρ₁ cr
+  main-lemma Ω ρ₀ ρ₁ cr F 𝓭 p α rewrite p α = {!!}
 
 -- ⟓
