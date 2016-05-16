@@ -24,7 +24,7 @@ data 𝓓 (Y Z : Set) : Set where
 
 eval : {Y Z : Set} → 𝓓 Y Z → Y ^ω → Z
 eval (η x) α = x
-eval (ϝ 𝓭[_]) α = eval (𝓭[ α 0 ]) (α ∘ su_)
+eval (ϝ 𝓭[_]) α = eval 𝓭[ α 0 ] (α ∘ su_)
 
 ⟦_⟧ : {Y Z : Set} → 𝓓 Y Z → Y ^ω → Z
 ⟦_⟧ = eval
