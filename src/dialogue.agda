@@ -36,15 +36,12 @@ nth [] i = ⊕.inr 𝟙.*
 nth (x ∷ xs) ze = ⊕.inl x
 nth (x ∷ xs) (su_ i) = nth xs i
 
+{-# TERMINATING #-}
 sort : {Y Z : Set} → List Y → 𝓓 Y Z → 𝓓ₙ Y Z
 sort U (η x) = η x
-sort U (ϝ i 𝓭[_]) = go U i
-  where
-    go : List _ → Nat → _
-    go [] ze = ϝ λ x → sort (U ⌢ x) 𝓭[ x ]
-    go [] (su_ j) = ϝ λ x → go ([] ⌢ x) j
-    go (x ∷ V) ze = ϝ λ y → sort U 𝓭[ y ]
-    go (x ∷ V) (su_ j) = go V j
+sort U (ϝ i 𝓭[_]) with nth U i
+sort U (ϝ i 𝓭[_]) | ⊕.inl x = sort U 𝓭[ x ]
+sort U (ϝ i 𝓭[_]) | ⊕.inr _ = ϝ λ x → sort (U ⌢ x) (ϝ i 𝓭[_])
 
 sort₀ : {Y Z : Set} → 𝓓 Y Z → 𝓓ₙ Y Z
 sort₀ = sort []
@@ -78,7 +75,7 @@ id x = su x
 -- Here's a counterexample:
 -- (sort isn't quite right yet clearly)
 test-eq : ⟦ test ⟧ id ≡ ⟦ sort₀ test ⟧ₙ id
-test-eq = {!!}
+test-eq = refl
 
 prepend : {Y : Set} → List Y → Y ^ω → Y ^ω
 prepend [] α = α
