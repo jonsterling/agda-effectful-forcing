@@ -43,14 +43,14 @@ sort U (ϝ i 𝓭[_]) = go U i
     go : List _ → Nat → _
     go [] ze = ϝ λ x → sort (U ⌢ x) 𝓭[ x ]
     go [] (su_ j) = ϝ λ x → go ([] ⌢ x) j
-    go (x ∷ V) ze = ϝ λ y → sort (U ⌢ x) 𝓭[ y ]
+    go (x ∷ V) ze = ϝ λ y → sort U 𝓭[ y ]
     go (x ∷ V) (su_ j) = go V j
 
 sort₀ : {Y Z : Set} → 𝓓 Y Z → 𝓓ₙ Y Z
 sort₀ = sort []
 
 test : 𝓓 Nat Nat
-test = ϝ 5 λ x → ϝ 4 λ y → η (x Nat.+ y)
+test = ϝ 4 λ x → ϝ 5 λ y → η (x Nat.+ y)
 
 test2 : 𝓓ₙ Nat Nat
 test2 = sort₀ test
@@ -75,9 +75,25 @@ id x = su x
 {-# DISPLAY eval 𝓭 U α = ⟦ 𝓭 ⟧ α #-}
 {-# DISPLAY evalₙ 𝓭 U α = ⟦ 𝓭 ⟧ₙ α #-}
 
-diagram : {Y Z : Set} (𝓭 : 𝓓 Y Z) (α : Y ^ω) → ⟦ 𝓭 ⟧ α ≡ ⟦ sort₀ 𝓭 ⟧ₙ α
-diagram (η x) α = refl
-diagram (ϝ i 𝓭[_]) α rewrite diagram 𝓭[ α i ] α = {!!}
+-- Here's a counterexample:
+-- (sort isn't quite right yet clearly)
+test-eq : ⟦ test ⟧ id ≡ ⟦ sort₀ test ⟧ₙ id
+test-eq = {!!}
+
+prepend : {Y : Set} → List Y → Y ^ω → Y ^ω
+prepend [] α = α
+prepend (x ∷ xs) α ze = x
+prepend (x ∷ xs) α (su_ i) = prepend xs α i
+
+diagram : {Y Z : Set} (U : List Y) (𝓭 : 𝓓 Y Z) (α : Y ^ω) → ⟦ 𝓭 ⟧ (prepend U α) ≡ ⟦ sort U 𝓭 ⟧ₙ α
+diagram U (η x) α = refl
+diagram [] (ϝ ze 𝓭[_]) α =
+  let ih = diagram (α 0 ∷ []) 𝓭[ α 0 ] (α ∘ su_)
+  in {!!} -- true, just need a bit of equational reasoning
+
+diagram (x ∷ U) (ϝ ze 𝓭[_]) α = {!!}
+
+diagram U (ϝ (su_ i) 𝓭[_]) α = {!!}
 
 -- A mental construction of a functional on the Baire space
 𝓑 : Set → Set
