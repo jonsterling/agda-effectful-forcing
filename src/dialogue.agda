@@ -23,19 +23,61 @@ data 𝓓 (Y Z : Set) : Set where
   η_ : Z → 𝓓 Y Z
   ϝ : Nat → (Y → 𝓓 Y Z) → 𝓓 Y Z
 
-cons : {X : Set} → X → X ^ω → X ^ω
-cons x α ze = x
-cons x α (su i) = α i
+data 𝓓ₙ (Y Z : Set) : Set where
+  η_ : Z → 𝓓ₙ Y Z
+  ϝ : (Y → 𝓓ₙ Y Z) → 𝓓ₙ Y Z
+
+_⌢_ : {Y : Set} → List Y → Y → List Y
+[] ⌢ x = x ∷ []
+(x ∷ xs) ⌢ y = x ∷ (xs ⌢ y)
+
+nth : {Y : Set} → List Y → Nat → Y ⊕ 𝟙
+nth [] i = ⊕.inr 𝟙.*
+nth (x ∷ xs) ze = ⊕.inl x
+nth (x ∷ xs) (su_ i) = nth xs i
+
+sort : {Y Z : Set} → List Y → 𝓓 Y Z → 𝓓ₙ Y Z
+sort U (η x) = η x
+sort U (ϝ i 𝓭[_]) = go U i
+  where
+    go : List _ → Nat → _
+    go [] ze = ϝ λ x → sort (U ⌢ x) 𝓭[ x ]
+    go [] (su_ j) = ϝ λ x → go ([] ⌢ x) j
+    go (x ∷ V) ze = ϝ λ y → sort (U ⌢ x) 𝓭[ y ]
+    go (x ∷ V) (su_ j) = go V j
+
+sort₀ : {Y Z : Set} → 𝓓 Y Z → 𝓓ₙ Y Z
+sort₀ = sort []
+
+test : 𝓓 Nat Nat
+test = ϝ 5 λ x → ϝ 4 λ y → η (x Nat.+ y)
+
+test2 : 𝓓ₙ Nat Nat
+test2 = sort₀ test
 
 eval : {Y Z : Set} → 𝓓 Y Z → Y ^ω → Z
 eval (η x) α = x
 eval (ϝ i 𝓭[_]) α = eval 𝓭[ α i ] α
 
+evalₙ : {Y Z : Set} → 𝓓ₙ Y Z → Y ^ω → Z
+evalₙ (η x) α = x
+evalₙ (ϝ 𝓭[_]) α = evalₙ 𝓭[ α 0 ] (α ∘ su_)
+
+id : Nat ^ω
+id x = su x
 
 ⟦_⟧ : {Y Z : Set} → 𝓓 Y Z → Y ^ω → Z
 ⟦ 𝓭 ⟧ = eval 𝓭
 
+⟦_⟧ₙ : {Y Z : Set} → 𝓓ₙ Y Z → Y ^ω → Z
+⟦ 𝓭 ⟧ₙ = evalₙ 𝓭
+
 {-# DISPLAY eval 𝓭 U α = ⟦ 𝓭 ⟧ α #-}
+{-# DISPLAY evalₙ 𝓭 U α = ⟦ 𝓭 ⟧ₙ α #-}
+
+diagram : {Y Z : Set} (𝓭 : 𝓓 Y Z) (α : Y ^ω) → ⟦ 𝓭 ⟧ α ≡ ⟦ sort₀ 𝓭 ⟧ₙ α
+diagram (η x) α = refl
+diagram (ϝ i 𝓭[_]) α rewrite diagram 𝓭[ α i ] α = {!!}
 
 -- A mental construction of a functional on the Baire space
 𝓑 : Set → Set
