@@ -62,7 +62,7 @@ mutual
     -- not sure if this is right
     norm-ϝ-nil-su
       : ∀ {i 𝓭[_]}
-      → (∀ x → (snoc U x) ⊩ϝ⟨ i ⟩ 𝓭[_] norm⊣ [])
+      → (∀ x → snoc U x ⊩ϝ⟨ i ⟩ 𝓭[_] norm⊣ [])
       → U ⊩ϝ⟨ su i ⟩ 𝓭[_] norm⊣ []
 
 mutual
@@ -123,8 +123,46 @@ module Tests where
   test-eq : ⟦ test ⟧ id ≡ ⟦ norm test ⟧ₙ id
   test-eq = refl
 
-postulate
-  coherence : {Y Z : Set} (𝓭 : 𝓓 Y Z) (α : Y ^ω) → ⟦ 𝓭 ⟧ α ≡ ⟦ norm 𝓭 ⟧ₙ α
+prepend : {Y : Set} → List Y → Y ^ω → Y ^ω
+prepend [] α = α
+prepend (x ∷ xs) α ze = x
+prepend (x ∷ xs) α (su_ i) = prepend xs α i
+
+
+mutual
+  coherence : {Y Z : Set} {U : _} (𝓭 : 𝓓 Y Z) (n : U ⊩ 𝓭 norm) (α : Y ^ω) → ⟦ 𝓭 ⟧ (prepend U α) ≡ ⟦ run-norm n ⟧ₙ (prepend U α)
+  coherence .(η x) (norm-η x) α = refl
+  coherence _ (norm-ϝ {i = i} {𝓭[_] = 𝓭[_]} p) α = coherence-ϝ _ i 𝓭[_] p α
+
+  coherence-ϝ
+    : {Y Z : Set}
+    → {U : _} (V : _)
+    → (i : Nat)
+    → (𝓭[_] : Y → 𝓓 Y Z)
+    → (n : U ⊩ϝ⟨ i ⟩ 𝓭[_] norm⊣ V)
+    → (α : Y ^ω)
+    → (let U⊕α = prepend U α; V⊕α = prepend V α)
+    → ⟦ 𝓭[ V⊕α i ] ⟧ U⊕α ≡ ⟦ run-norm-ϝ n ⟧ₙ U⊕α
+
+  coherence-ϝ (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
+    coherence 𝓭[ x ] p α
+
+  coherence-ϝ (x ∷ V) (su i) 𝓭[_] (norm-ϝ-cons-su p) α =
+    coherence-ϝ V i 𝓭[_] p α
+
+  -- The following cases look false: we may need to adjust the
+  -- definition a bit.
+
+  coherence-ϝ {U = U} .[] .0 𝓭[_] (norm-ϝ-nil-ze p[_]) α =
+    let
+      U⊕α = prepend U α
+      ih = coherence 𝓭[ α 0 ] p[ α 0 ] (α ∘ su_)
+    in {!!}
+
+  coherence-ϝ .[] (su i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
+    let
+      ih = coherence-ϝ _ i 𝓭[_] p[ α 0 ] (α ∘ su_)
+    in {!!}
 
 -- A mental construction of a functional on the Baire space
 𝓑 : Set → Set
