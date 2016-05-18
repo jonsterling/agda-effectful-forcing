@@ -34,6 +34,11 @@ nth (x ∷ xs) (su_ i) = nth xs i
 
 
 -- TODO: This needs to be reimplemented structurally and proved correct.
+-- My concern is that the ability to write this function is itself the
+-- content of the bar induction principle--I don't know if that is actually
+-- a correct statement, but it does look a lot like the "proof" of BI that I
+-- gave in Agda here: https://github.com/jonsterling/agda-bar-induction/blob/master/src/BarTheorem.agda#L62
+--
 {-# TERMINATING #-}
 normalize : {Y Z : Set} → List Y → 𝓓 Y Z → 𝓓ₙ Y Z
 normalize U (η x) = η x
