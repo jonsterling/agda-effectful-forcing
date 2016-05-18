@@ -108,16 +108,6 @@ module 𝓑 where
   Ext[ ` 𝔟 ] f x = x ≫= f
   Ext[ σ ⇒ τ ] g 𝓭 s = Ext[ τ ] (λ x → g x s) 𝓭
 
-  [Ω] : Nat → 𝓓.𝓑 Nat
-  [Ω] ze = 𝓓.ϝ 𝓓.η_
-  [Ω] (su_ n) = 𝓓.ϝ λ _ → [Ω] n
-
-  module ⊢ where
-    [Ω]-id : (𝓭 : 𝓓.𝓑 Nat) (α : Point) → α (𝓓.⟦ 𝓭 ⟧ α) ≡ 𝓓.⟦ 𝓭 ≫= [Ω] ⟧ α
-    [Ω]-id (𝓓.η ze) α = refl
-    [Ω]-id (𝓓.η su x) α = [Ω]-id (𝓓.η x) (tail α)
-    [Ω]-id (𝓓.ϝ 𝓭[_]) α = let ih = [Ω]-id 𝓭[ α 0 ] α in {!!}
-
   ⟦_⟧
     : ∀ {𝓛 n τ} {Γ : Ctx n}
     → 𝓛 ▹ Γ ⊢ᵀ τ
@@ -125,110 +115,35 @@ module 𝓑 where
     → 𝒱.⟦ τ ⟧
   ⟦ zero ⟧ ρ = 𝓓.η ze
   ⟦ succ ⟧ ρ = map su_
-  ⟦ rec[ σ ] ⟧ ρ ih z = Ext[ σ ] (rec (ih ∘ 𝓓.η_) z)
-  ⟦ ν i p ⟧ ρ rewrite p = ρ i
+  ⟦ rec[ σ ] ⟧ ρ ih z m = Ext[ σ ] (λ x → rec (ih ∘ 𝓓.η_) z x) m
+  ⟦ ν x p ⟧ ρ rewrite p = ρ x
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
-  ⟦ Ω ⟧ ρ i = i ≫= [Ω]
+  ⟦ Ω ⟧ ρ 𝓭 = 𝓭 ≫= λ i → 𝓓.ϝ i 𝓓.η_
 
   ⟦_⟧₀
     : ∀ {𝓛 τ}
     → 𝓛 ▹ Ctx.⋄ ⊢ᵀ τ
     → 𝒱.⟦ τ ⟧
-  ⟦ t ⟧₀ = ⟦ t ⟧ 𝒢.⋄
+  ⟦ t ⟧₀ =
+    ⟦ t ⟧ 𝒢.⋄
 
+
+module Testing where
+  open 𝓑
+
+  add : 𝓛.TΩ ▹ Ctx.⋄ ⊢ᵀ ` nat ⇒ ` nat ⇒ ` nat
+  add = rec[ ` nat ] · ƛ succ
+
+  test : 𝓓.𝓑 Nat
+  test = ⟦ add · (Ω · zero) · (Ω · zero) ⟧₀
 
 open Baire
 
 -- The following theorem must be proved via logical relations, following Escardó's
 -- proof here: http://www.cs.bham.ac.uk/~mhe/dialogue/dialogue-lambda.html#18185.
 postulate
-  coherence
+  interpretation-correct
     : (α : Point)
     → (F : 𝓛.TΩ ▹ Ctx.⋄ ⊢ᵀ ((` nat ⇒ ` nat) ⇒ ` nat))
     → 𝓓.⟦ 𝓑.⟦ F · Ω ⟧₀ ⟧ α ≡ TΩ.⟦ F · Ω ⟧₀ α
-
-
-module ⊢ where
-
-  -- Our logical relation. I have a feeling we may need to adjust either it,
-  -- or the interpretation.
-  𝓡[_]
-    : (σ : Type)
-    → (Point → T.𝒱.⟦ σ ⟧)
-    → 𝓑.𝒱.⟦ σ ⟧
-    → Set
-  𝓡[ ` 𝔟 ] F 𝓭 =
-    (α : Point)
-      → F α ≡ 𝓓.⟦ 𝓭 ⟧ α
-  𝓡[ σ ⇒ τ ] f g =
-    (F : Point → T.𝒱.⟦ σ ⟧)
-    (𝓭 : 𝓑.𝒱.⟦ σ ⟧)
-      → 𝓡[ σ ] F 𝓭
-      → 𝓡[ τ ] (λ α → f α (F α)) (g 𝓭)
-
-  𝓡⋆[_]
-    : {n : Nat}
-    → (Γ : Ctx n)
-    → (Point → TΩ.𝒢.⟦ Γ ⟧)
-    → 𝓑.𝒢.⟦ Γ ⟧
-    → Set
-  𝓡⋆[ Γ ] ρ₀ ρ₁ =
-    (i : Fin _)
-      → 𝓡[ Γ Ctx.[ i ] ] (λ α → ρ₀ α i) (ρ₁ i)
-
-  𝓡-Ext-lemma
-    : (σ : Type) (F[_] : Nat → Point → T.𝒱.⟦ σ ⟧) (𝓭[_] : Nat → 𝓑.𝒱.⟦ σ ⟧)
-    → (∀ k → 𝓡[ σ ] F[ k ] 𝓭[ k ])
-    → (F : Point → Nat)
-    → (𝓭 : 𝓓.𝓑 Nat)
-    → 𝓡[ ` nat ] F 𝓭
-    → 𝓡[ σ ] (λ α → F[ F α ] α) (𝓑.Ext[ σ ] 𝓭[_] 𝓭)
-  𝓡-Ext-lemma (` 𝔟) F[_] 𝓭[_] p F 𝓭 q = λ α → fact α
-    where
-      fact : ∀ α → F[ F α ] α ≡ 𝓓.⟦ 𝓭 ≫= 𝓭[_] ⟧ α
-      fact α = ≡.ap¹ (λ x → F[ x ] α) (q α) ≡.⟓ {!!}
-
-
---    where
---      fact₀ : ∀ α → 𝓓.⟦ 𝓭[ 𝓓.⟦ 𝓭 ⟧ α ] ⟧ α ≡ 𝓓.⟦ (𝓑.Ext[ (` 𝔟) ] 𝓭[_] 𝓭) ⟧ α
---      fact₀ = {!!}
-
-  𝓡-Ext-lemma (σ ⇒ σ₁) F[_] 𝓭[_] p F 𝓭 q = {!!}
-
-  main-lemma
-    : {n : Nat} {Γ : Ctx n} {σ : Type}
-    → (M : 𝓛.TΩ ▹ Γ ⊢ᵀ σ)
-    → (ρ₀ : Point → TΩ.𝒢.⟦ Γ ⟧)
-    → (ρ₁ : 𝓑.𝒢.⟦ Γ ⟧)
-    → 𝓡⋆[ Γ ] ρ₀ ρ₁
-    → 𝓡[ σ ] (λ α → TΩ.⟦ M ⟧ α (ρ₀ α)) (𝓑.⟦ M ⟧ ρ₁)
-
-  main-lemma zero ρ₀ ρ₁ cr α =
-    refl
-
-  main-lemma succ ρ₀ ρ₁ cr F 𝓭 p α rewrite p α =
-    𝓓.⊢.eval-natural su_ 𝓭 α
-
-  main-lemma rec[ σ ] ρ₀ ρ₁ cr =
-    {!!}
-
-  main-lemma (ν i p) ρ₀ ρ₁ cr rewrite p =
-    cr i
-
-  main-lemma (ƛ t) ρ₀ ρ₁ cr =
-    {!!}
-
-  main-lemma (m · n) ρ₀ ρ₁ cr =
-    ihₘ
-      (λ z → TΩ.⟦ n ⟧ z (ρ₀ z))
-      (𝓑.⟦ n ⟧ ρ₁)
-      ihₙ
-    where
-      ihₘ = main-lemma m ρ₀ ρ₁ cr
-      ihₙ = main-lemma n ρ₀ ρ₁ cr
-
-  main-lemma Ω ρ₀ ρ₁ cr F 𝓭 p α rewrite p α =
-    𝓑.⊢.[Ω]-id 𝓭 α
-
--- ⟓
