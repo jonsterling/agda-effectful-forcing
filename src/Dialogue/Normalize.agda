@@ -18,6 +18,8 @@ private
   (x ∷ xs) ⌢ y = x ∷ (xs ⌢ y)
 
 
+-- We first define mutually inductive judgments which specify when an
+-- Escardó dialogue is normalizable into a Brouwerian mental construction.
 mutual
   data _⊩_norm {Y Z : Set} (U : List Y) : 𝓓 Y Z → Set where
     norm-η
@@ -50,34 +52,89 @@ mutual
       → (∀ x → (U ⌢ x) ⊩β⟨ i ⟩ 𝓭[_] norm⊣ [])
       → U ⊩β⟨ su i ⟩ 𝓭[_] norm⊣ []
 
-
+-- Next, we show that the proof-theoretic characterization of
+-- tree normalizability was sound, i.e. that whenever the judgment
+-- holds for an Escardó dialogue, we can compute the corresponding
+-- Brouwerian mental construction.
 mutual
-  run-norm : {Y Z : Set} {𝓭 : 𝓓 Y Z} {U : _} → U ⊩ 𝓭 norm → 𝓓ₙ Y Z
-  run-norm (norm-η x) = η x
-  run-norm (norm-ϝ p) = run-norm-ϝ p
+  norm↓
+    : {Y Z : Set}
+    → {U : _}
+    → {𝓭 : 𝓓 Y Z}
+    → U ⊩ 𝓭 norm
+    → 𝓓ₙ Y Z
+  norm↓ (norm-η x) =
+    η x
 
-  run-norm-ϝ : {Y Z : Set} {i : Nat} {𝓭[_] : Y → 𝓓 Y Z} {U V : _} → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V → 𝓓ₙ Y Z
-  run-norm-ϝ (norm-ϝ-cons-ze p) = run-norm p
-  run-norm-ϝ (norm-ϝ-cons-su p) = run-norm-ϝ p
-  run-norm-ϝ (norm-ϝ-nil-ze p[_]) = ϝ λ x → run-norm p[ x ]
-  run-norm-ϝ (norm-ϝ-nil-su p[_]) = ϝ λ x → run-norm-ϝ p[ x ]
+  norm↓ (norm-ϝ p) =
+    norm↓-ϝ p
 
+  norm↓-ϝ
+    : {Y Z : Set}
+    → {U V : _}
+    → {𝓭[_] : Y → 𝓓 Y Z}
+    → {i : Nat}
+    → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V
+    → 𝓓ₙ Y Z
+
+  norm↓-ϝ (norm-ϝ-cons-ze p) =
+    norm↓ p
+
+  norm↓-ϝ (norm-ϝ-cons-su p) =
+    norm↓-ϝ p
+
+  norm↓-ϝ (norm-ϝ-nil-ze p) =
+    ϝ (norm↓ ∘ p)
+
+  norm↓-ϝ (norm-ϝ-nil-su p) =
+    ϝ (norm↓-ϝ ∘ p)
+
+
+-- Then, we show that the proof theory is complete: that for any Escardó dialogue,
+-- we can show that it is normalizable.
 mutual
-  compute-norm : {Y Z : Set} (U : _) (𝓭 : 𝓓 Y Z) → U ⊩ 𝓭 norm
-  compute-norm U (η x) = norm-η x
-  compute-norm U (β⟨ i ⟩ 𝓭[_]) = norm-ϝ (compute-norm-ϝ _ _ i 𝓭[_])
+  norm↑
+    : {Y Z : Set}
+    → (U : _)
+    → (𝓭 : 𝓓 Y Z)
+    → U ⊩ 𝓭 norm
+  norm↑ U (η x) =
+    norm-η x
 
-  compute-norm-ϝ : {Y Z : Set} (U V : _) (i : Nat) (𝓭[_] : Y → 𝓓 Y Z) → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V
-  compute-norm-ϝ U [] ze 𝓭[_] = norm-ϝ-nil-ze λ x → compute-norm (U ⌢ x) 𝓭[ x ]
-  compute-norm-ϝ U [] (su_ i) 𝓭[_] = norm-ϝ-nil-su λ x → compute-norm-ϝ (U ⌢ x) [] i 𝓭[_]
-  compute-norm-ϝ U (x ∷ V) ze 𝓭[_] = norm-ϝ-cons-ze (compute-norm U 𝓭[ x ])
-  compute-norm-ϝ U (x ∷ V) (su_ i) 𝓭[_] = norm-ϝ-cons-su (compute-norm-ϝ U V i 𝓭[_])
+  norm↑ U (β⟨ i ⟩ 𝓭[_]) =
+    norm-ϝ (norm↑-ϝ _ _ i 𝓭[_])
 
-compute-norm₀ : {Y Z : Set} (𝓭 : 𝓓 Y Z) → [] ⊩ 𝓭 norm
-compute-norm₀ = compute-norm []
+  norm↑-ϝ
+    : {Y Z : Set}
+    → (U V : _)
+    → (i : Nat)
+    → (𝓭 : Y → 𝓓 Y Z)
+    → U ⊩β⟨ i ⟩ 𝓭 norm⊣ V
 
-norm : {Y Z : Set} → 𝓓 Y Z → 𝓓ₙ Y Z
-norm 𝓭 = run-norm (compute-norm₀ 𝓭)
+  norm↑-ϝ U [] ze 𝓭 =
+    norm-ϝ-nil-ze λ x →
+      norm↑ (U ⌢ x) (𝓭 x)
+
+  norm↑-ϝ U [] (su_ i) 𝓭 =
+    norm-ϝ-nil-su λ x →
+      norm↑-ϝ (U ⌢ x) [] i 𝓭
+
+  norm↑-ϝ U (x ∷ V) ze 𝓭 =
+    norm-ϝ-cons-ze (norm↑ U (𝓭 x))
+
+  norm↑-ϝ U (x ∷ V) (su_ i) 𝓭 =
+    norm-ϝ-cons-su (norm↑-ϝ U V i 𝓭)
+
+norm↑₀ : {Y Z : Set} (𝓭 : 𝓓 Y Z) → [] ⊩ 𝓭 norm
+norm↑₀ = norm↑ []
+
+norm
+  : {Y Z : Set}
+  → 𝓓 Y Z
+  → 𝓓ₙ Y Z
+norm =
+  norm↓
+    ∘ norm↑₀
 
 module ⊢ where
   private
@@ -109,7 +166,7 @@ module ⊢ where
         → (𝓭 : 𝓓 Y Z)
         → (p : U ⊩ 𝓭 norm)
         → (α : Y ^ω)
-        → 𝓭 $ (U ⊕< α) ≡ run-norm p $ₙ α
+        → 𝓭 $ (U ⊕< α) ≡ norm↓ p $ₙ α
       coh .(η x) (norm-η x) α = refl
       coh _ (norm-ϝ {i = i} {𝓭[_] = 𝓭[_]} p) α =
         coh-ϝ _ i 𝓭[_] p α
@@ -121,7 +178,7 @@ module ⊢ where
         → (𝓭[_] : Y → 𝓓 Y Z)
         → (p : U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V)
         → (α : Y ^ω)
-        → 𝓭[ (V ⊕< α) i ] $ (U ⊕< α) ≡ run-norm-ϝ p $ₙ α
+        → 𝓭[ (V ⊕< α) i ] $ (U ⊕< α) ≡ norm↓-ϝ p $ₙ α
 
       coh-ϝ {U = U} (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
         coh {U = U} 𝓭[ x ] p α
@@ -145,4 +202,4 @@ module ⊢ where
     → 𝓭 $ α ≡ norm 𝓭 $ₙ α
   coh 𝓭 =
     Coh.coh 𝓭
-      (compute-norm [] 𝓭)
+      (norm↑ [] 𝓭)
