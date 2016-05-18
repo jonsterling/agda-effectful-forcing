@@ -23,6 +23,7 @@ data 𝓓 (Y Z : Set) : Set where
   η_ : Z → 𝓓 Y Z
   ϝ : Nat → (Y → 𝓓 Y Z) → 𝓓 Y Z
 
+-- In the normalized (Brouwerian) version of the dialogue tree, queries are given in order.
 data 𝓓ₙ (Y Z : Set) : Set where
   η_ : Z → 𝓓ₙ Y Z
   ϝ : (Y → 𝓓ₙ Y Z) → 𝓓ₙ Y Z
