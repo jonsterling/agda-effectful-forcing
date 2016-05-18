@@ -18,14 +18,14 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
     → F ⊩ᵀ φ bar
     → ⊨ φ bar
   bar-theorem F =
-    analyze [] (𝓓.sort₀ 𝓑.⟦ F · Ω ⟧₀)
+    analyze [] (𝓓.norm 𝓑.⟦ F · Ω ⟧₀)
       ∘ lemma F
 
     where
       lemma
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
         → F ⊩ᵀ φ bar
-        → 𝓓.sort₀ 𝓑.⟦ F · Ω ⟧₀ ⊩ φ bar
+        → 𝓓.norm 𝓑.⟦ F · Ω ⟧₀ ⊩ φ bar
       lemma F p α rewrite 𝓓.coherence 𝓑.⟦ F · Ω ⟧₀ α ≡.⁻¹ | interpretation-correct α F =
         p α
 
