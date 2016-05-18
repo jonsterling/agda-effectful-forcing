@@ -29,7 +29,7 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
         → 𝓓.norm 𝓑.⟦ F · Ω ⟧₀ ⊩ φ bar
       lemma F p α
         rewrite
-            𝓓.coherence 𝓑.⟦ F · Ω ⟧₀ (𝓓.compute-norm [] _) α ≡.⁻¹
+            𝓓.⊢.coh 𝓑.⟦ F · Ω ⟧₀ α ≡.⁻¹
           | interpretation-correct α F = p α
 
       0⋯ : Point
@@ -57,6 +57,6 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
           analyze (U ⌢ x) (κ x) λ α →
             ≡.coe*
               (λ n → φ ((U ⊕< x ∷ α) [ n ]))
-              (Point.⊢.su-+-transpose _ (𝓓.⟦ κ x ⟧ₙ α))
+              (Point.⊢.su-+-transpose _ (κ x 𝓓.$ₙ α))
               (φ-mono (f (x ∷ α)))
 

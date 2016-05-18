@@ -17,8 +17,8 @@ import Dialogue as 𝓓
 
 open import System-T.Syntax
 
-open Functor 𝓓.𝓓-functor
-open Monad 𝓓.𝓓-monad
+open Functor (𝓓.𝓓-functor {Nat})
+open Monad (𝓓.𝓓-monad {Nat})
 
 private
   id : {ℓ : _} {A : Set ℓ} → A → A
@@ -119,7 +119,7 @@ module 𝓑 where
   ⟦ ν x p ⟧ ρ rewrite p = ρ x
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
   ⟦ m · n ⟧ ρ = ⟦ m ⟧ ρ (⟦ n ⟧ ρ)
-  ⟦ Ω ⟧ ρ 𝓭 = 𝓭 ≫= λ i → 𝓓.ϝ i 𝓓.η_
+  ⟦ Ω ⟧ ρ 𝓭 = 𝓭 ≫= λ i → 𝓓.β⟨ i ⟩ 𝓓.η_
 
   ⟦_⟧₀
     : ∀ {𝓛 τ}
@@ -127,16 +127,6 @@ module 𝓑 where
     → 𝒱.⟦ τ ⟧
   ⟦ t ⟧₀ =
     ⟦ t ⟧ 𝒢.⋄
-
-
-module Testing where
-  open 𝓑
-
-  add : 𝓛.TΩ ▹ Ctx.⋄ ⊢ᵀ ` nat ⇒ ` nat ⇒ ` nat
-  add = rec[ ` nat ] · ƛ succ
-
-  test : 𝓓.𝓑 Nat
-  test = ⟦ add · (Ω · zero) · (Ω · zero) ⟧₀
 
 open Baire
 
@@ -146,4 +136,4 @@ postulate
   interpretation-correct
     : (α : Point)
     → (F : 𝓛.TΩ ▹ Ctx.⋄ ⊢ᵀ ((` nat ⇒ ` nat) ⇒ ` nat))
-    → 𝓓.⟦ 𝓑.⟦ F · Ω ⟧₀ ⟧ α ≡ TΩ.⟦ F · Ω ⟧₀ α
+    → 𝓑.⟦ F · Ω ⟧₀ 𝓓.$ α ≡ TΩ.⟦ F · Ω ⟧₀ α
