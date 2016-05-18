@@ -155,21 +155,13 @@ mutual
     → (α : Y ^ω)
     → (let U⊕α = prepend U α; V⊕α = prepend V α)
     → ⟦ 𝓭[ V⊕α i ] ⟧ U⊕α ≡ ⟦ run-norm-ϝ n ⟧ₙ α
-
   coherence-ϝ {U = U} (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
     coherence {U = U} 𝓭[ x ] p α
-    -- coherence 𝓭[ x ] p α
-
   coherence-ϝ (x ∷ V) (su i) 𝓭[_] (norm-ϝ-cons-su p) α =
     coherence-ϝ V i 𝓭[_] p α
-
-  -- The following cases look false: we may need to adjust the
-  -- definition a bit.
-
   coherence-ϝ {U = U} .[] .0 𝓭[_] (norm-ϝ-nil-ze p[_]) α =
     coherence 𝓭[ α 0 ] p[ α 0 ] (α ∘ su_)
       ≡.⟔ eval-functional 𝓭[ α 0 ] (prepend-snoc-id U α)
-
   coherence-ϝ {U = U} .[] (su i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
     coherence-ϝ _ i 𝓭[_] p[ α 0 ] (α ∘ su_)
       ≡.⟔ eval-functional 𝓭[ α (su i) ] (prepend-snoc-id U α)
@@ -206,15 +198,3 @@ module ⊢ where
     refl
   eval-natural f (ϝ i 𝓭[_]) α =
     eval-natural f 𝓭[ α i ] α
-
-{-
-  -- uh-oh! Is this even true?
-  eval-bind-law
-    : {X Y : Set}
-    → (𝓯[_] : X → 𝓑 Y)
-    → (𝓭 : 𝓑 X)
-    → (α : Nat ^ω)
-    → ⟦ 𝓯[ ⟦ 𝓭 ⟧ α ] ⟧ α ≡ ⟦ 𝓭 ≫= 𝓯[_] ⟧ α
-  eval-bind-law 𝓯[_] (η x) α = refl
-  eval-bind-law 𝓯[_] (ϝ 𝓭[_]) α = {!!}
--}
