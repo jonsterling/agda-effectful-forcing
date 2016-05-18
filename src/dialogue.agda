@@ -27,30 +27,27 @@ data 𝓓ₙ (Y Z : Set) : Set where
   η_ : Z → 𝓓ₙ Y Z
   ϝ : (Y → 𝓓ₙ Y Z) → 𝓓ₙ Y Z
 
-_⌢_ : {Y : Set} → List Y → Y → List Y
-[] ⌢ x = x ∷ []
-(x ∷ xs) ⌢ y = x ∷ (xs ⌢ y)
-
 nth : {Y : Set} → List Y → Nat → Y ⊕ 𝟙
 nth [] i = ⊕.inr 𝟙.*
 nth (x ∷ xs) ze = ⊕.inl x
 nth (x ∷ xs) (su_ i) = nth xs i
 
+
+-- TODO: This needs to be reimplemented structurally and proved correct.
 {-# TERMINATING #-}
-sort : {Y Z : Set} → List Y → 𝓓 Y Z → 𝓓ₙ Y Z
-sort U (η x) = η x
-sort U (ϝ i 𝓭[_]) with nth U i
-sort U (ϝ i 𝓭[_]) | ⊕.inl x = sort U 𝓭[ x ]
-sort U (ϝ i 𝓭[_]) | ⊕.inr _ = ϝ λ x → sort (U ⌢ x) (ϝ i 𝓭[_])
+normalize : {Y Z : Set} → List Y → 𝓓 Y Z → 𝓓ₙ Y Z
+normalize U (η x) = η x
+normalize U (ϝ i 𝓭[_]) with nth U i
+normalize U (ϝ i 𝓭[_]) | ⊕.inl x = normalize U 𝓭[ x ]
+normalize U (ϝ i 𝓭[_]) | ⊕.inr _ = ϝ λ x → normalize (U ⌢ x) (ϝ i 𝓭[_])
+  where
+    _⌢_ : {Y : Set} → List Y → Y → List Y
+    [] ⌢ x = x ∷ []
+    (x ∷ xs) ⌢ y = x ∷ (xs ⌢ y)
 
-sort₀ : {Y Z : Set} → 𝓓 Y Z → 𝓓ₙ Y Z
-sort₀ = sort []
 
-test : 𝓓 Nat Nat
-test = ϝ 4 λ x → ϝ 5 λ y → η (x Nat.+ y)
-
-test2 : 𝓓ₙ Nat Nat
-test2 = sort₀ test
+normalize₀ : {Y Z : Set} → 𝓓 Y Z → 𝓓ₙ Y Z
+normalize₀ = normalize []
 
 eval : {Y Z : Set} → 𝓓 Y Z → Y ^ω → Z
 eval (η x) α = x
@@ -59,9 +56,6 @@ eval (ϝ i 𝓭[_]) α = eval 𝓭[ α i ] α
 evalₙ : {Y Z : Set} → 𝓓ₙ Y Z → Y ^ω → Z
 evalₙ (η x) α = x
 evalₙ (ϝ 𝓭[_]) α = evalₙ 𝓭[ α 0 ] (α ∘ su_)
-
-id : Nat ^ω
-id x = su x
 
 ⟦_⟧ : {Y Z : Set} → 𝓓 Y Z → Y ^ω → Z
 ⟦ 𝓭 ⟧ = eval 𝓭
@@ -72,29 +66,30 @@ id x = su x
 {-# DISPLAY eval 𝓭 U α = ⟦ 𝓭 ⟧ α #-}
 {-# DISPLAY evalₙ 𝓭 U α = ⟦ 𝓭 ⟧ₙ α #-}
 
--- Here's a counterexample:
--- (sort isn't quite right yet clearly)
-test-eq : ⟦ test ⟧ id ≡ ⟦ sort₀ test ⟧ₙ id
-test-eq = refl
+module Tests where
 
-prepend : {Y : Set} → List Y → Y ^ω → Y ^ω
-prepend [] α = α
-prepend (x ∷ xs) α ze = x
-prepend (x ∷ xs) α (su_ i) = prepend xs α i
+  id : Nat ^ω
+  id x = x
 
-diagram : {Y Z : Set} (U : List Y) (𝓭 : 𝓓 Y Z) (α : Y ^ω) → ⟦ 𝓭 ⟧ (prepend U α) ≡ ⟦ sort U 𝓭 ⟧ₙ α
-diagram U (η x) α = refl
-diagram [] (ϝ ze 𝓭[_]) α =
-  let ih = diagram (α 0 ∷ []) 𝓭[ α 0 ] (α ∘ su_)
-  in {!!} -- true, just need a bit of equational reasoning
+  test : 𝓓 Nat Nat
+  test = ϝ 4 λ x → ϝ 5 λ y → η (x Nat.+ y)
 
-diagram (x ∷ U) (ϝ ze 𝓭[_]) α = {!!}
+  test2 : 𝓓ₙ Nat Nat
+  test2 = normalize₀ test
 
-diagram U (ϝ (su_ i) 𝓭[_]) α = {!!}
+
+  test-eq : ⟦ test ⟧ id ≡ ⟦ normalize₀ test ⟧ₙ id
+  test-eq = refl
+
+postulate
+  coherence : {Y Z : Set} (𝓭 : 𝓓 Y Z) (α : Y ^ω) → ⟦ 𝓭 ⟧ α ≡ ⟦ normalize₀ 𝓭 ⟧ₙ α
 
 -- A mental construction of a functional on the Baire space
 𝓑 : Set → Set
 𝓑 = 𝓓 Nat
+
+𝓑ₙ : Set → Set
+𝓑ₙ = 𝓓ₙ Nat
 
 instance
   𝓓-functor : Functor 𝓑

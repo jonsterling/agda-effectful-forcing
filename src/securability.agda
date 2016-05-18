@@ -16,13 +16,13 @@ open Nat using (_+_; _-_)
 
 -- Proof that a dialogue computes the securability of a node.
 _⊩_◃_
-  : 𝓑 Nat
+  : 𝓑ₙ Nat
   → Neigh
   → Species
   → Set
 𝓭 ⊩ U ◃ φ =
   (α : Point)
-    → φ ((U ⊕< α) [ 𝓓.⟦ 𝓭 ⟧ (U ⊕< α) + ∣ U ∣ ])
+    → φ ((U ⊕< α) [ 𝓓.⟦ 𝓭 ⟧ₙ α + ∣ U ∣ ])
 
 _⊩ᵀ_◃_
   : ⊢ᵀ (` nat ⇒ ` nat) ⇒ ` nat
@@ -40,7 +40,7 @@ F ⊩ᵀ U ◃ φ =
   ⊨ [] ◃ φ
 
 _⊩_bar
-  : 𝓑 Nat
+  : 𝓑ₙ Nat
   → Species
   → Set
 𝓭 ⊩ φ bar =
