@@ -3,6 +3,7 @@ module Bar-Theorem where
 open import Prelude.Natural
 open import Prelude.Monoidal hiding (_⇒_)
 open import Prelude.Path
+open import Prelude.List using ([])
 
 import Dialogue as 𝓓
 open import Baire
@@ -26,8 +27,10 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
         → F ⊩ᵀ φ bar
         → 𝓓.norm 𝓑.⟦ F · Ω ⟧₀ ⊩ φ bar
-      lemma F p α rewrite 𝓓.coherence 𝓑.⟦ F · Ω ⟧₀ α ≡.⁻¹ | interpretation-correct α F =
-        p α
+      lemma F p α
+        rewrite
+            𝓓.coherence 𝓑.⟦ F · Ω ⟧₀ (𝓓.compute-norm [] _) α ≡.⁻¹
+          | interpretation-correct α F = p α
 
       0⋯ : Point
       0⋯ _ = 0

@@ -108,6 +108,13 @@ evalₙ (ϝ 𝓭[_]) α = evalₙ 𝓭[ α 0 ] (α ∘ su_)
 {-# DISPLAY eval 𝓭 U α = ⟦ 𝓭 ⟧ α #-}
 {-# DISPLAY evalₙ 𝓭 U α = ⟦ 𝓭 ⟧ₙ α #-}
 
+eval-functional
+  : {Y Z : Set} (𝓭 : 𝓓 Y Z) {α β : Y ^ω}
+  → (∀ i → α i ≡ β i)
+  → eval 𝓭 α ≡ eval 𝓭 β
+eval-functional (η x) h = refl
+eval-functional (ϝ i 𝓭[_]) {α = α} {β = β} h rewrite h i = eval-functional 𝓭[ β i ] h
+
 module Tests where
 
   id : Nat ^ω
@@ -128,9 +135,14 @@ prepend [] α = α
 prepend (x ∷ xs) α ze = x
 prepend (x ∷ xs) α (su_ i) = prepend xs α i
 
+prepend-snoc-id : {Y : Set} (U : List Y) (α : Y ^ω) (i : Nat) → prepend U α i ≡ prepend (snoc U (α 0)) (α ∘ su_) i
+prepend-snoc-id [] α ze = refl
+prepend-snoc-id [] α (su_ i) = refl
+prepend-snoc-id (x ∷ U) α ze = refl
+prepend-snoc-id (x ∷ U) α (su_ i) = prepend-snoc-id U α i
 
 mutual
-  coherence : {Y Z : Set} {U : _} (𝓭 : 𝓓 Y Z) (n : U ⊩ 𝓭 norm) (α : Y ^ω) → ⟦ 𝓭 ⟧ (prepend U α) ≡ ⟦ run-norm n ⟧ₙ (prepend U α)
+  coherence : {Y Z : Set} {U : _} (𝓭 : 𝓓 Y Z) (n : U ⊩ 𝓭 norm) (α : Y ^ω) → ⟦ 𝓭 ⟧ (prepend U α) ≡ ⟦ run-norm n ⟧ₙ α
   coherence .(η x) (norm-η x) α = refl
   coherence _ (norm-ϝ {i = i} {𝓭[_] = 𝓭[_]} p) α = coherence-ϝ _ i 𝓭[_] p α
 
@@ -142,10 +154,11 @@ mutual
     → (n : U ⊩ϝ⟨ i ⟩ 𝓭[_] norm⊣ V)
     → (α : Y ^ω)
     → (let U⊕α = prepend U α; V⊕α = prepend V α)
-    → ⟦ 𝓭[ V⊕α i ] ⟧ U⊕α ≡ ⟦ run-norm-ϝ n ⟧ₙ U⊕α
+    → ⟦ 𝓭[ V⊕α i ] ⟧ U⊕α ≡ ⟦ run-norm-ϝ n ⟧ₙ α
 
-  coherence-ϝ (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
-    coherence 𝓭[ x ] p α
+  coherence-ϝ {U = U} (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
+    coherence {U = U} 𝓭[ x ] p α
+    -- coherence 𝓭[ x ] p α
 
   coherence-ϝ (x ∷ V) (su i) 𝓭[_] (norm-ϝ-cons-su p) α =
     coherence-ϝ V i 𝓭[_] p α
@@ -154,15 +167,12 @@ mutual
   -- definition a bit.
 
   coherence-ϝ {U = U} .[] .0 𝓭[_] (norm-ϝ-nil-ze p[_]) α =
-    let
-      U⊕α = prepend U α
-      ih = coherence 𝓭[ α 0 ] p[ α 0 ] (α ∘ su_)
-    in {!!}
+    coherence 𝓭[ α 0 ] p[ α 0 ] (α ∘ su_)
+      ≡.⟔ eval-functional 𝓭[ α 0 ] (prepend-snoc-id U α)
 
-  coherence-ϝ .[] (su i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
-    let
-      ih = coherence-ϝ _ i 𝓭[_] p[ α 0 ] (α ∘ su_)
-    in {!!}
+  coherence-ϝ {U = U} .[] (su i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
+    coherence-ϝ _ i 𝓭[_] p[ α 0 ] (α ∘ su_)
+      ≡.⟔ eval-functional 𝓭[ α (su i) ] (prepend-snoc-id U α)
 
 -- A mental construction of a functional on the Baire space
 𝓑 : Set → Set
