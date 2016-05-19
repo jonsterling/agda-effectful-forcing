@@ -14,6 +14,10 @@ open import System-T.Semantics
 module BarTheorem (φ : Species) (φ-mono : monotone φ) where
   open Π using (_∘_)
 
+  -- The content of Brouwer's Bar Theorem is that if we have a functional that
+  -- will compute for any point α the length of the first approximation U ≺ α
+  -- that is in the species φ, then we can well-order this insight into a
+  -- mental construction that φ is a bar.
   bar-theorem
     : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
     → F ⊩ᵀ φ bar
@@ -30,8 +34,7 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
       lemma F p α
         rewrite
             𝓓.⊢.coh 𝓑.⟦ F · Ω ⟧₀ α ≡.⁻¹
-          | interpretation-correct α F = p α
-
+          | ⊢.soundness₀ (F · Ω) α ≡.⁻¹ = p α
       0⋯ : Point
       0⋯ _ = 0
 
