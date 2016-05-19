@@ -2,10 +2,10 @@ module Securability where
 
 open import Prelude.Natural
 
-open import Baire
+open import Spread.Baire
 open import Dialogue as 𝓓
-open import System-T.Syntax
-open import System-T.Semantics
+open import SystemT.Syntax
+open import SystemT.Semantics
 
 -- A Brouwerian mental construction to verify that a node is securable.
 data ⊨_◃_ (U : Neigh) (φ : Species) : Set where

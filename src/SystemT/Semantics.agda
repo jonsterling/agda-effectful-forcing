@@ -1,4 +1,4 @@
-module System-T.Semantics where
+module SystemT.Semantics where
 
 open import Prelude.Finite
 open import Prelude.Functor hiding (map)
@@ -8,14 +8,14 @@ open import Prelude.Natural
 open import Prelude.String
 open import Prelude.Path
 
-import Context as Ctx
+import SystemT.Context as Ctx
 open Ctx hiding (⋄; _,_)
 open Π using (_∘_)
 
-import Baire
+import Spread.Baire
 import Dialogue as 𝓓
 
-open import System-T.Syntax
+open import SystemT.Syntax
 
 open Functor (𝓓.𝓓-functor {Nat} {Nat})
 open Monad (𝓓.𝓓-monad {Nat} {Nat})
@@ -73,7 +73,7 @@ module T where
 
 module TΩ where
   open Predicates id public
-  open Baire
+  open Spread.Baire
 
   ⟦_⟧
     : ∀ {𝓛 n τ} {Γ : Ctx n}
@@ -97,7 +97,7 @@ module TΩ where
   ⟦ t ⟧₀ α = ⟦ t ⟧ α 𝒢.⋄
 
 module 𝓑 where
-  open Baire
+  open Spread.Baire
   open Predicates 𝓓.𝓑 public
 
   Ext[_]
@@ -130,7 +130,7 @@ module 𝓑 where
   ⟦ t ⟧₀ =
     ⟦ t ⟧ 𝒢.⋄
 
-open Baire
+open Spread.Baire
 
 module ⊢ where
   open 𝓓

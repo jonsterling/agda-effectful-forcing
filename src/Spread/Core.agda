@@ -1,20 +1,15 @@
-module Baire where
+module Spread.Core (X : Set) where
 
-open import Prelude.Monoidal
 open import Prelude.Natural
 open import Prelude.Path
-
-open import Prelude.Functor
-open import Prelude.Monad
-
-import Dialogue as 𝓓
+open import Prelude.Monoidal
 
 open Π using (_∘_)
 
 module Neigh where
   data Neigh : Set where
     [] : Neigh
-    _⌢_ : Neigh → Nat → Neigh
+    _⌢_ : Neigh → X → Neigh
 
   infixl 5 _⌢_
 
@@ -32,28 +27,27 @@ module Neigh where
     refl ⟨⌢⟩ refl = refl
 
 module Point where
-  -- A point in the Baire spread is a sequence of natural numbers.
-  Point : Set
-  Point = 𝓓.Seq Nat
 
-  head : Point → Nat
+  Point : Set
+  Point = Nat → X
+
+  head : Point → X
   head α = α 0
 
   tail : Point → Point
   tail α = α ∘ su_
 
-  cons : Nat → Point → Point
+  cons : X → Point → Point
   cons x α ze = x
   cons x α (su i) = α i
 
-  _∷_ : Nat → Point → Point
+  _∷_ : X → Point → Point
   _∷_ = cons
 
   {-# DISPLAY cons x α = x ∷ α #-}
 
   _≈_ : Point → Point → Set
   α ≈ β = (i : Nat) → α i ≡ β i
-
 
   open Neigh hiding (module ⊢)
 
@@ -148,7 +142,6 @@ module Point where
       prepend-take-len U
         Neigh.⊢.⟨⌢⟩ prepend-len U 0
 
-
 module Species where
   open Neigh
 
@@ -161,7 +154,7 @@ module Species where
     : Species
     → Set
   monotone 𝔄 =
-    {U : Neigh} {x : Nat}
+    {U : Neigh} {x : X}
       → 𝔄 U
       → 𝔄 (U ⌢ x)
 

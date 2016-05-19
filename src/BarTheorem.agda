@@ -1,15 +1,14 @@
-module Bar-Theorem where
+module BarTheorem where
 
 open import Prelude.Natural
 open import Prelude.Monoidal hiding (_⇒_)
 open import Prelude.Path
-open import Prelude.List using ([])
 
 import Dialogue as 𝓓
-open import Baire
+open import Spread.Baire
 open import Securability
-open import System-T.Syntax
-import System-T.Semantics as Sem
+open import SystemT.Syntax
+import SystemT.Semantics as Sem
 open Sem hiding (module ⊢)
 
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where

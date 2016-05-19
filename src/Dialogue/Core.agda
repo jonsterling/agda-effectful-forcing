@@ -37,15 +37,6 @@ instance
 {-# DISPLAY 𝓓-functor f 𝓭 = map f 𝓭 #-}
 {-# DISPLAY 𝓓-monad κ 𝓭 = 𝓭 ≫= κ #-}
 
-
-Seq : Set → Set
-Seq X = Nat → X
-
-_^ω : Set → Set
-X ^ω = Seq X
-
-{-# DISPLAY Seq X = X ^ω #-}
-
 -- A dialogue may be run against a choice sequence.
 _$_
   : {X Y Z : Set}
@@ -57,15 +48,18 @@ _$_
   𝓭[ α i ] $ α
 
 generic
-  : 𝓑 Nat
-  → 𝓑 Nat
+  : {X Y : Set}
+  → 𝓓 X Y X
+  → 𝓓 X Y Y
 generic 𝓭 =
   𝓭 ≫= λ i →
     β⟨ i ⟩ η_
 
 module ⊢ where
   _$¹_
-    : {X Y Z : Set} (𝓭 : 𝓓 X Y Z) {α β : X → Y}
+    : {X Y Z : Set}
+    → (𝓭 : 𝓓 X Y Z)
+    → {α β : X → Y}
     → (∀ i → α i ≡ β i)
     → 𝓭 $ α ≡ 𝓭 $ β
 
@@ -91,10 +85,10 @@ module ⊢ where
 
 
   $-≫=
-    : {X Y : Set}
-    → {𝓭[_] : X → 𝓑 Y}
-    → (𝓮 : 𝓑 X)
-    → (α : Nat ^ω)
+    : {X Y Z W : Set}
+    → {𝓭[_] : Z → 𝓓 X Y W}
+    → (𝓮 : 𝓓 X Y Z)
+    → (α : X → Y)
     → 𝓭[ 𝓮 $ α ] $ α ≡ (𝓮 ≫= 𝓭[_]) $ α
 
   $-≫= (η x) α =
@@ -105,8 +99,9 @@ module ⊢ where
 
 
   generic-diagram
-    : (α : Nat ^ω)
-    → (𝓭 : 𝓑 Nat)
+    : {X Y : Set}
+    → (α : X → Y)
+    → (𝓭 : 𝓓 X Y X)
     → α (𝓭 $ α) ≡ generic 𝓭 $ α
 
   generic-diagram α (η x) =

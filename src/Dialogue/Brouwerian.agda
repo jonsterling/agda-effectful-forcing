@@ -28,6 +28,6 @@ data 𝓓ₙ (Y Z : Set) : Set where
 𝓑ₙ = 𝓓ₙ Nat
 
 -- A dialogue may be run against a choice sequence.
-_$ₙ_ : {Y Z : Set} → 𝓓ₙ Y Z → Y ^ω → Z
+_$ₙ_ : {Y Z : Set} → 𝓓ₙ Y Z → (Nat → Y) → Z
 (η x) $ₙ α = x
 ϝ 𝓭[_] $ₙ α = 𝓭[ α 0 ] $ₙ (α ∘ su_)

@@ -1,4 +1,4 @@
-module System-T.Syntax where
+module SystemT.Syntax where
 
 open import Prelude.Finite
 open import Prelude.Functor
@@ -8,7 +8,7 @@ open import Prelude.Path
 open import Prelude.String
 open import Prelude.Monoidal hiding (_⇒_; _,_)
 
-import Context as Ctx
+import SystemT.Context as Ctx
 open Ctx hiding (⋄; _,_)
 
 data BaseType : Set where

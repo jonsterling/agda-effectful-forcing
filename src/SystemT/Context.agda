@@ -1,4 +1,4 @@
-module Context where
+module SystemT.Context where
 
 open import Prelude.Natural
 open import Prelude.Finite
