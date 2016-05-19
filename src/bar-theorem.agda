@@ -63,3 +63,30 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
               (Point.⊢.su-+-transpose _ (κ x 𝓓.$ₙ α))
               (φ-mono (f (x ∷ α)))
 
+
+  module Induction
+    (ψ : Species)
+    (φ⊑ψ : ∀ U → φ U → ψ U)
+    (ψ-hered : ∀ U → ((∀ x → ψ (U ⌢ x))) → ψ U)
+    where
+
+      relabel
+        : (U : Neigh)
+        → (⊨ U ◃ φ)
+        → ψ U
+
+      relabel U (η x) =
+        φ⊑ψ U x
+
+      relabel U (ϝ 𝓭[_]) =
+        ψ-hered U λ x →
+          relabel (U ⌢ x) 𝓭[ x ]
+
+
+      induction
+        : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
+        → F ⊩ᵀ φ bar
+        → ψ []
+      induction F =
+        relabel []
+          ∘ bar-theorem F
