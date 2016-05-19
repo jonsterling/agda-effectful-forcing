@@ -160,10 +160,13 @@ module Species where
   monotone
     : Species
     → Set
-  monotone φ =
+  monotone 𝔄 =
     {U : Neigh} {x : Nat}
-      → φ U
-      → φ (U ⌢ x)
+      → 𝔄 U
+      → 𝔄 (U ⌢ x)
+
+  _⊑_ : Species → Species → Set
+  𝔄 ⊑ 𝔅 = ∀ x → 𝔄 x → 𝔅 x
 
 open Point public hiding (module ⊢)
 open Neigh public hiding (module Neigh; module ⊢)

@@ -11,7 +11,7 @@ open import Securability
 open import System-T.Syntax
 open import System-T.Semantics
 
-module BarTheorem (φ : Species) (φ-mono : monotone φ) where
+module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
   open Π using (_∘_)
 
   -- The content of Brouwer's Bar Theorem is that if we have a functional that
@@ -20,8 +20,8 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
   -- mental construction that φ is a bar.
   bar-theorem
     : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
-    → F ⊩ᵀ φ bar
-    → ⊨ φ bar
+    → F ⊩ᵀ 𝔅 bar
+    → ⊨ 𝔅 bar
   bar-theorem F =
     analyze [] (𝓓.norm 𝓑.⟦ F · Ω ⟧₀)
       ∘ lemma F
@@ -29,64 +29,71 @@ module BarTheorem (φ : Species) (φ-mono : monotone φ) where
     where
       lemma
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
-        → F ⊩ᵀ φ bar
-        → 𝓓.norm 𝓑.⟦ F · Ω ⟧₀ ⊩ φ bar
+        → F ⊩ᵀ 𝔅 bar
+        → 𝓓.norm 𝓑.⟦ F · Ω ⟧₀ ⊩ 𝔅 bar
       lemma F p α
         rewrite
             𝓓.⊢.coh 𝓑.⟦ F · Ω ⟧₀ α ≡.⁻¹
           | ⊢.soundness₀ (F · Ω) α ≡.⁻¹ = p α
+
       0⋯ : Point
       0⋯ _ = 0
 
+
       analyze
-        : (U : Neigh) (𝓭 : 𝓓.𝓑ₙ Nat)
-        → 𝓭 ⊩ U ◃ φ
-        → ⊨ U ◃ φ
+        : (U : Neigh)
+        → (𝓭 : 𝓓.𝓑ₙ Nat)
+        → 𝓭 ⊩ U ◃ 𝔅
+        → ⊨ U ◃ 𝔅
+
       analyze [] (𝓓.η ze) f =
         η f 0⋯
+
       analyze (U ⌢ x) (𝓓.η ze) f =
-        η ≡.coe* φ (Point.⊢.prepend-take-len _) (f 0⋯)
+        η ≡.coe* 𝔅 (Point.⊢.prepend-take-len _) (f 0⋯)
+
       analyze U (𝓓.η (su n)) f =
         ϝ λ x →
           analyze (U ⌢ x) (𝓓.η n)
-            (≡.coe* φ
+            (≡.coe* 𝔅
                (Point.⊢.take-cong
                   (Point.⊢.su-+-transpose _ n)
                   (λ _ → refl))
                ∘ f
                ∘ x ∷_)
+
       analyze U (𝓓.ϝ κ) f =
         ϝ λ x →
           analyze (U ⌢ x) (κ x) λ α →
             ≡.coe*
-              (λ n → φ ((U ⊕< x ∷ α) [ n ]))
+              (λ n → 𝔅 ((U ⊕< x ∷ α) [ n ]))
               (Point.⊢.su-+-transpose _ (κ x 𝓓.$ₙ α))
-              (φ-mono (f (x ∷ α)))
+              (𝔅-mono (f (x ∷ α)))
 
 
   module Induction
-    (ψ : Species)
-    (φ⊑ψ : ∀ U → φ U → ψ U)
-    (ψ-hered : ∀ U → ((∀ x → ψ (U ⌢ x))) → ψ U)
+    (𝔄 : Species)
+    (φ⊑𝔄 : ∀ U → 𝔅 U → 𝔄 U)
+    (𝔄-hered : ∀ U → (∀ x → 𝔄 (U ⌢ x)) → 𝔄 U)
     where
 
       relabel
         : (U : Neigh)
-        → (⊨ U ◃ φ)
-        → ψ U
+        → (⊨ U ◃ 𝔅)
+        → 𝔄 U
 
       relabel U (η x) =
-        φ⊑ψ U x
+        φ⊑𝔄 U x
 
       relabel U (ϝ 𝓭[_]) =
-        ψ-hered U λ x →
+        𝔄-hered U λ x →
           relabel (U ⌢ x) 𝓭[ x ]
 
 
       induction
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
-        → F ⊩ᵀ φ bar
-        → ψ []
+        → F ⊩ᵀ 𝔅 bar
+        → 𝔄 []
       induction F =
         relabel []
           ∘ bar-theorem F
