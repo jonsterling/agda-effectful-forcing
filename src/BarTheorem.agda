@@ -46,11 +46,8 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         → 𝓭 ⊩ U ◃ 𝔅
         → ⊨ U ◃ 𝔅
 
-      analyze [] (𝓓.η ze) f =
-        η f 0⋯
-
-      analyze (U ⌢ x) (𝓓.η ze) f rewrite Point.⊢.prepend-take-len (U ⌢ x) {0⋯} ≡.⁻¹ =
-        η (f 0⋯)
+      analyze U (𝓓.η ze) f =
+        η ≡.coe* 𝔅 (Point.⊢.prepend-take-len U) (f 0⋯)
 
       analyze U (𝓓.η (su n)) f =
         ϝ λ x →
