@@ -142,6 +142,29 @@ module Point where
       prepend-take-len U
         Neigh.⊢.⟨⌢⟩ prepend-len U 0
 
+    cons-head-tail-id
+      : ∀ α
+      → α ≈ (head α ∷ tail α)
+    cons-head-tail-id α ze = refl
+    cons-head-tail-id α (su_ i) = refl
+
+    prepend-extensional
+      : ∀ U α β
+      → α ≈ β
+      → prepend U α ≈ prepend U β
+    prepend-extensional [] α β h = h
+    prepend-extensional (U ⌢ x) α β h =
+      prepend-extensional U (x ∷ α) (x ∷ β) λ
+        { ze → refl
+        ; (su j) → h j
+        }
+
+    prepend-snoc-id
+      : ∀ U α
+      → (U ⊕< α) ≈ (U ⌢ head α ⊕< tail α)
+    prepend-snoc-id U α =
+      prepend-extensional U _ _ (cons-head-tail-id α)
+
 module Species where
   open Neigh
 
