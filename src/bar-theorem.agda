@@ -9,7 +9,8 @@ import Dialogue as 𝓓
 open import Baire
 open import Securability
 open import System-T.Syntax
-open import System-T.Semantics
+import System-T.Semantics as Sem
+open Sem hiding (module ⊢)
 
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
   open Π using (_∘_)
@@ -34,11 +35,11 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       lemma F p α
         rewrite
             𝓓.⊢.coh 𝓑.⟦ F · Ω ⟧₀ α ≡.⁻¹
-          | ⊢.soundness₀ (F · Ω) α ≡.⁻¹ = p α
+          | Sem.⊢.soundness₀ (F · Ω) α ≡.⁻¹ = p α
+
 
       0⋯ : Point
       0⋯ _ = 0
-
 
       analyze
         : (U : Neigh)
@@ -49,16 +50,13 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       analyze [] (𝓓.η ze) f =
         η f 0⋯
 
-      analyze (U ⌢ x) (𝓓.η ze) f =
-        η ≡.coe* 𝔅 (Point.⊢.prepend-take-len _) (f 0⋯)
+      analyze (U ⌢ x) (𝓓.η ze) f rewrite Point.⊢.prepend-take-len (U ⌢ x) {0⋯} ≡.⁻¹ =
+        η (f 0⋯)
 
       analyze U (𝓓.η (su n)) f =
         ϝ λ x →
           analyze (U ⌢ x) (𝓓.η n)
-            (≡.coe* 𝔅
-               (Point.⊢.take-cong
-                  (Point.⊢.su-+-transpose _ n)
-                  (λ _ → refl))
+            (≡.coe* 𝔅 (Point.⊢.take-cong (Point.⊢.su-+-transpose ∣ U ∣ n) (λ _ → refl))
                ∘ f
                ∘ x ∷_)
 
@@ -71,10 +69,11 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
               (𝔅-mono (f (x ∷ α)))
 
 
+  -- The Bar Induction Principle is a corollary to the Bar Theorem.
   module Induction
     (𝔄 : Species)
-    (φ⊑𝔄 : ∀ U → 𝔅 U → 𝔄 U)
-    (𝔄-hered : ∀ U → (∀ x → 𝔄 (U ⌢ x)) → 𝔄 U)
+    (𝔅⊑𝔄 : 𝔅 ⊑ 𝔄)
+    (𝔄-hered : hereditary 𝔄)
     where
 
       relabel
@@ -83,10 +82,10 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         → 𝔄 U
 
       relabel U (η x) =
-        φ⊑𝔄 U x
+        𝔅⊑𝔄 U x
 
       relabel U (ϝ 𝓭[_]) =
-        𝔄-hered U λ x →
+        𝔄-hered λ x →
           relabel (U ⌢ x) 𝓭[ x ]
 
 

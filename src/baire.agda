@@ -165,6 +165,14 @@ module Species where
       → 𝔄 U
       → 𝔄 (U ⌢ x)
 
+  hereditary
+    : Species
+    → Set
+  hereditary 𝔄 =
+    {U : Neigh}
+      → (∀ x → 𝔄 (U ⌢ x))
+      → 𝔄 U
+
   _⊑_ : Species → Species → Set
   𝔄 ⊑ 𝔅 = ∀ x → 𝔄 x → 𝔅 x
 
