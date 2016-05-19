@@ -17,8 +17,8 @@ import Dialogue as 𝓓
 
 open import System-T.Syntax
 
-open Functor (𝓓.𝓓-functor {Nat})
-open Monad (𝓓.𝓓-monad {Nat})
+open Functor (𝓓.𝓓-functor {Nat} {Nat})
+open Monad (𝓓.𝓓-monad {Nat} {Nat})
 
 private
   id : {ℓ : _} {A : Set ℓ} → A → A
