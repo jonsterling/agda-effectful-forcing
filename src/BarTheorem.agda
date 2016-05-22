@@ -16,7 +16,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
   ζ[_] : ∀ {U} x → ⊨ U ◃ 𝔅 → ⊨ U ⌢ x ◃ 𝔅
   ζ[ x ] (η y) = η 𝔅-mono y
-  ζ[ x ] (ϝ κ) = κ x
+  ζ[ x ] (ϝ 𝓭[_]) = 𝓭[ x ]
 
   -- The content of Brouwer's Bar Theorem is that if we have a functional that
   -- will compute for any point α the length of the first approximation U ≺ α
