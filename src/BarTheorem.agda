@@ -4,6 +4,8 @@ open import Prelude.Natural
 open import Prelude.Monoidal hiding (_⇒_)
 open import Prelude.Path
 
+import Prelude.List as List
+
 import Dialogue as 𝓓
 open import Spread.Baire
 open import Securability
@@ -27,18 +29,25 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
     → F ⊩ᵀ 𝔅 bar
     → ⊨ 𝔅 bar
   bar-theorem F =
-    analyze [] (𝓓.norm 𝓑.⟦ F · Ω ⟧₀)
+    analyze [] (𝓓.norm (𝓑.⟦ F ⟧₀ 𝓓.generic))
       ∘ lemma F
 
     where
+      +-cong
+        : ∀ {m m′ n n′}
+        → m ≡ m′
+        → n ≡ n′
+        → (m Nat.+ n) ≡ (m′ Nat.+ n′)
+      +-cong refl refl = refl
+
       lemma
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
         → F ⊩ᵀ 𝔅 bar
-        → 𝓓.norm 𝓑.⟦ F · Ω ⟧₀ ⊩ 𝔅 bar
+        → 𝓓.norm (𝓑.⟦ F ⟧₀ 𝓓.generic) ⊩ 𝔅 bar
       lemma F p α
         rewrite
-            𝓓.⊢.coh 𝓑.⟦ F · Ω ⟧₀ α ≡.⁻¹
-          | Sem.⊢.soundness₀ (F · Ω) α ≡.⁻¹ = p α
+            𝓓.⊢.coh (𝓑.⟦ F ⟧₀ 𝓓.generic) α ≡.⁻¹
+          | Sem.⊢.soundness α F T.𝒢.⋄ 𝓑.𝒢.⋄ (λ ()) α 𝓓.generic (λ G 𝓮 f → 𝓓.⊢.generic-diagram α 𝓮 ≡.⟔ ≡.ap¹ α f) ≡.⁻¹ = p α
 
 
       0⋯ : Point
