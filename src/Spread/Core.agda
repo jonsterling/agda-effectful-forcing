@@ -60,16 +60,17 @@ module Point where
   prepend (U ⌢ x) α =
     prepend U (cons x α)
 
-  _⊕<_
+  _⨭_
     : Neigh
     → Point
     → Point
-  _⊕<_ =
+  _⨭_ =
     prepend
 
-  infixr 4 _⊕<_
+  infixr 3 _⨭_
+  infix 2 _[_]
 
-  {-# DISPLAY prepend U α = U ⊕< α #-}
+  {-# DISPLAY prepend U α = U ⨭ α #-}
 
   take
     : Nat
@@ -122,21 +123,21 @@ module Point where
 
     prepend-len
       : ∀ U n {α}
-      → (U ⊕< α) (n + ∣ U ∣) ≡ α n
+      → (U ⨭ α) (n + ∣ U ∣) ≡ α n
     prepend-len [] n
       rewrite Nat.⊢.ρ⇒ {n}
         = refl
     prepend-len (U ⌢ x) n =
       prepend-len U (su n) ≡.⟔
         nth-cong
-          (U ⌢ x ⊕< _)
+          (U ⌢ x ⨭ _)
           _
           (λ i → refl)
           (su-+-transpose ∣ U ∣ n ≡.⁻¹)
 
     prepend-take-len
       : ∀ U {α}
-      → take ∣ U ∣ (U ⊕< α) ≡ U
+      → take ∣ U ∣ (U ⨭ α) ≡ U
     prepend-take-len [] = refl
     prepend-take-len (U ⌢ x) =
       prepend-take-len U
@@ -161,7 +162,7 @@ module Point where
 
     prepend-snoc-id
       : ∀ U α
-      → (U ⊕< α) ≈ (U ⌢ head α ⊕< tail α)
+      → (U ⨭ α) ≈ (U ⌢ head α ⨭ tail α)
     prepend-snoc-id U α =
       prepend-extensional U _ _ (cons-head-tail-id α)
 

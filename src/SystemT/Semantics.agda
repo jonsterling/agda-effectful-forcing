@@ -75,12 +75,12 @@ module T where
 
 module 𝓑 where
   open Spread.Baire
-  open Predicates 𝓓.𝓑 public
+  open Predicates (𝓓.𝔈 Nat Nat) public
 
   Ext[_]
     : {X : Set} (τ : Type)
     → (X → 𝒱.⟦ τ ⟧)
-    → 𝓓.𝓑 X
+    → 𝓓.𝔈 Nat Nat X
     → 𝒱.⟦ τ ⟧
   Ext[ ` 𝔟 ] f x =
     x ≫= f

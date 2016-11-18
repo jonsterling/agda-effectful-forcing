@@ -14,7 +14,7 @@ open Sem hiding (module ⊢)
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
   open Π using (_∘_)
 
-  ζ[_] : ∀ {U} x → ⊨ U ◃ 𝔅 → ⊨ U ⌢ x ◃ 𝔅
+  ζ[_] : ∀ {U} x → U ◂ 𝔅 → U ⌢ x ◂ 𝔅
   ζ[ x ] (η y) = η 𝔅-mono y
   ζ[ x ] (ϝ 𝓭[_]) = 𝓭[ x ]
 
@@ -24,8 +24,8 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
   -- mental construction that φ is a bar.
   bar-theorem
     : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
-    → F ⊩ᵀ 𝔅 bar
-    → ⊨ 𝔅 bar
+    → F ⊩ [] ◃ᵀ 𝔅
+    → [] ◂ 𝔅
   bar-theorem F =
     analyze [] (𝓓.norm (𝓑.⟦ F ⟧₀ 𝓓.generic))
       ∘ lemma F
@@ -33,8 +33,8 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
     where
       lemma
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
-        → F ⊩ᵀ 𝔅 bar
-        → 𝓓.norm (𝓑.⟦ F ⟧₀ 𝓓.generic) ⊩ 𝔅 bar
+        → F ⊩ [] ◃ᵀ 𝔅
+        → 𝓓.norm (𝓑.⟦ F ⟧₀ 𝓓.generic) ⊩ [] ◃ 𝔅
       lemma F p α
         rewrite
             𝓓.⊢.coh (𝓑.⟦ F ⟧₀ 𝓓.generic) α ≡.⁻¹
@@ -46,9 +46,9 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
       analyze
         : (U : Neigh)
-        → (𝓭 : 𝓓.𝓑ₙ Nat)
+        → (𝓭 : 𝓓.𝔅 Nat Nat)
         → 𝓭 ⊩ U ◃ 𝔅
-        → ⊨ U ◃ 𝔅
+        → U ◂ 𝔅
 
       analyze U (𝓓.η ze) f =
         η ≡.coe* 𝔅 (Point.⊢.prepend-take-len U) (f 0⋯)
@@ -64,7 +64,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         ϝ λ x →
           analyze (U ⌢ x) (κ x) λ α →
             ≡.coe*
-              (λ n → 𝔅 ((U ⊕< x ∷ α) [ n ]))
+              (λ n → 𝔅 ((U ⨭ x ∷ α) [ n ]))
               (Point.⊢.su-+-transpose _ (κ x 𝓓.$ₙ α))
               (𝔅-mono (f (x ∷ α)))
 
@@ -78,7 +78,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
       relabel
         : (U : Neigh)
-        → (⊨ U ◃ 𝔅)
+        → (U ◂ 𝔅)
         → 𝔄 U
 
       relabel U (η x) =
@@ -91,7 +91,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
       induction
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
-        → F ⊩ᵀ 𝔅 bar
+        → F ⊩ [] ◃ᵀ 𝔅
         → 𝔄 []
       induction F =
         relabel []

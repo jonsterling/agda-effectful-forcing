@@ -21,7 +21,7 @@ private
 -- We first define mutually inductive judgments which specify when an
 -- Escardó dialogue is normalizable into a Brouwerian mental construction.
 mutual
-  data _⊩_norm {Y Z : Set} (U : List Y) : 𝓓 Nat Y Z → Set where
+  data _⊩_norm {Y Z : Set} (U : List Y) : 𝔈 Nat Y Z → Set where
     norm-η
       : ∀ x
       → U ⊩ η x norm
@@ -31,7 +31,7 @@ mutual
       → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ U
       → U ⊩ β⟨ i ⟩ 𝓭[_] norm
 
-  data _⊩β⟨_⟩_norm⊣_ {Y Z : Set} (U : List Y) : Nat → (Y → 𝓓 Nat Y Z) → List Y → Set where
+  data _⊩β⟨_⟩_norm⊣_ {Y Z : Set} (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
     norm-ϝ-cons-ze
       : ∀ {V x 𝓭[_]}
       → U ⊩ 𝓭[ x ] norm
@@ -60,9 +60,9 @@ mutual
   norm↓
     : {Y Z : Set}
     → {U : _}
-    → {𝓭 : 𝓓 Nat Y Z}
+    → {𝓭 : 𝔈 Nat Y Z}
     → U ⊩ 𝓭 norm
-    → 𝓓ₙ Y Z
+    → 𝔅 Y Z
   norm↓ (norm-η x) =
     η x
 
@@ -72,10 +72,10 @@ mutual
   norm↓-ϝ
     : {Y Z : Set}
     → {U V : _}
-    → {𝓭[_] : Y → 𝓓 Nat Y Z}
+    → {𝓭[_] : Y → 𝔈 Nat Y Z}
     → {i : Nat}
     → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V
-    → 𝓓ₙ Y Z
+    → 𝔅 Y Z
 
   norm↓-ϝ (norm-ϝ-cons-ze p) =
     norm↓ p
@@ -96,7 +96,7 @@ mutual
   norm↑
     : {Y Z : Set}
     → (U : _)
-    → (𝓭 : 𝓓 Nat Y Z)
+    → (𝓭 : 𝔈 Nat Y Z)
     → U ⊩ 𝓭 norm
   norm↑ U (η x) =
     norm-η x
@@ -108,7 +108,7 @@ mutual
     : {Y Z : Set}
     → (U V : _)
     → (i : Nat)
-    → (𝓭 : Y → 𝓓 Nat Y Z)
+    → (𝓭 : Y → 𝔈 Nat Y Z)
     → U ⊩β⟨ i ⟩ 𝓭 norm⊣ V
 
   norm↑-ϝ U [] ze 𝓭 =
@@ -125,13 +125,13 @@ mutual
   norm↑-ϝ U (x ∷ V) (su_ i) 𝓭 =
     norm-ϝ-cons-su (norm↑-ϝ U V i 𝓭)
 
-norm↑₀ : {Y Z : Set} (𝓭 : 𝓓 Nat Y Z) → [] ⊩ 𝓭 norm
+norm↑₀ : {Y Z : Set} (𝓭 : 𝔈 Nat Y Z) → [] ⊩ 𝓭 norm
 norm↑₀ = norm↑ []
 
 norm
   : {Y Z : Set}
-  → 𝓓 Nat Y Z
-  → 𝓓ₙ Y Z
+  → 𝔈 Nat Y Z
+  → 𝔅 Y Z
 norm =
   norm↓
     ∘ norm↑₀
@@ -165,7 +165,7 @@ module ⊢ where
       coh
         : {Y Z : Set}
         → {U : _}
-        → (𝓭 : 𝓓 Nat Y Z)
+        → (𝓭 : 𝔈 Nat Y Z)
         → (p : U ⊩ 𝓭 norm)
         → (α : 𝔖.Point Y)
         → 𝓭 $ (U ⊕< α) ≡ norm↓ p $ₙ α
@@ -177,7 +177,7 @@ module ⊢ where
         : {Y Z : Set}
         → {U : _} (V : _)
         → (i : Nat)
-        → (𝓭[_] : Y → 𝓓 Nat Y Z)
+        → (𝓭[_] : Y → 𝔈 Nat Y Z)
         → (p : U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V)
         → (α : 𝔖.Point Y)
         → 𝓭[ (V ⊕< α) i ] $ (U ⊕< α) ≡ norm↓-ϝ p $ₙ α
@@ -199,7 +199,7 @@ module ⊢ where
 
   coh
     : {Y Z : Set}
-    → (𝓭 : 𝓓 Nat Y Z)
+    → (𝓭 : 𝔈 Nat Y Z)
     → (α : 𝔖.Point Y)
     → 𝓭 $ α ≡ norm 𝓭 $ₙ α
   coh 𝓭 =
