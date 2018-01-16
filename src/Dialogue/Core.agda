@@ -1,9 +1,6 @@
 module Dialogue.Core where
 
-open import Prelude.Natural
-open import Prelude.Functor
-open import Prelude.Monad
-open import Prelude.Path
+open import Basis
 
 -- An Escardó dialogue, representing a functional on a space whose
 -- neighborhoods are lists of Y.
@@ -20,10 +17,6 @@ data 𝔈 (X Y Z : Set) : Set where
     → (Y → 𝔈 X Y Z)
     → 𝔈 X Y Z
 
--- 𝓑 represents functionals on the Baire space.
--- 𝓑 : Set → Set
--- 𝓑 = 𝓓 Nat Nat
-
 instance
   𝓓-functor : {X Y : Set} → Functor (𝔈 X Y)
   Functor.map 𝓓-functor f (η x) = η (f x)
@@ -33,9 +26,6 @@ instance
   Monad.return_ 𝓓-monad = η_
   Monad.bind 𝓓-monad κ (η x) = κ x
   Monad.bind 𝓓-monad κ (β⟨ i ⟩ 𝓭[_]) = β⟨ i ⟩ λ x → Monad.bind 𝓓-monad κ 𝓭[ x ]
-
-{-# DISPLAY 𝓓-functor f 𝓭 = map f 𝓭 #-}
-{-# DISPLAY 𝓓-monad κ 𝓭 = 𝓭 ≫= κ #-}
 
 -- A dialogue may be run against a choice sequence.
 _$_
@@ -109,4 +99,3 @@ module ⊢ where
 
   generic-diagram α (β⟨ i ⟩ 𝓭[_]) =
     generic-diagram α 𝓭[ α i ]
-

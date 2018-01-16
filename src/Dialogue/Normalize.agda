@@ -1,16 +1,11 @@
 module Dialogue.Normalize where
 
-open import Prelude.List
-open import Prelude.Natural
-open import Prelude.Monoidal
-open import Prelude.Path
+open import Basis
 
 import Dialogue.Core as Core
 open Core hiding (module ⊢)
 
 open import Dialogue.Brouwerian
-
-open Π using (_∘_)
 
 private
   _⌢_ : {Y : Set} → List Y → Y → List Y
@@ -40,7 +35,7 @@ mutual
     norm-ϝ-cons-su
       : ∀ {V x i 𝓭[_]}
       → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V
-      → U ⊩β⟨ su i ⟩ 𝓭[_] norm⊣ (x ∷ V)
+      → U ⊩β⟨ suc i ⟩ 𝓭[_] norm⊣ (x ∷ V)
 
     norm-ϝ-nil-ze
       : ∀ {𝓭[_]}
@@ -50,7 +45,7 @@ mutual
     norm-ϝ-nil-su
       : ∀ {i 𝓭[_]}
       → (∀ x → (U ⌢ x) ⊩β⟨ i ⟩ 𝓭[_] norm⊣ [])
-      → U ⊩β⟨ su i ⟩ 𝓭[_] norm⊣ []
+      → U ⊩β⟨ suc i ⟩ 𝓭[_] norm⊣ []
 
 -- Next, we show that the proof-theoretic characterization of
 -- tree normalizability was sound, i.e. that whenever the judgment
@@ -111,18 +106,18 @@ mutual
     → (𝓭 : Y → 𝔈 Nat Y Z)
     → U ⊩β⟨ i ⟩ 𝓭 norm⊣ V
 
-  norm↑-ϝ U [] ze 𝓭 =
+  norm↑-ϝ U [] zero 𝓭 =
     norm-ϝ-nil-ze λ x →
       norm↑ (U ⌢ x) (𝓭 x)
 
-  norm↑-ϝ U [] (su_ i) 𝓭 =
+  norm↑-ϝ U [] (suc i) 𝓭 =
     norm-ϝ-nil-su λ x →
       norm↑-ϝ (U ⌢ x) [] i 𝓭
 
-  norm↑-ϝ U (x ∷ V) ze 𝓭 =
+  norm↑-ϝ U (x ∷ V) zero 𝓭 =
     norm-ϝ-cons-ze (norm↑ U (𝓭 x))
 
-  norm↑-ϝ U (x ∷ V) (su_ i) 𝓭 =
+  norm↑-ϝ U (x ∷ V) (suc i) 𝓭 =
     norm-ϝ-cons-su (norm↑-ϝ U V i 𝓭)
 
 norm↑₀ : {Y Z : Set} (𝓭 : 𝔈 Nat Y Z) → [] ⊩ 𝓭 norm
@@ -142,8 +137,8 @@ module ⊢ where
   private
     prepend : {Y : Set} → List Y → 𝔖.Point Y → 𝔖.Point Y
     prepend [] α = α
-    prepend (x ∷ xs) α ze = x
-    prepend (x ∷ xs) α (su_ i) = prepend xs α i
+    prepend (x ∷ xs) α zero = x
+    prepend (x ∷ xs) α (suc i) = prepend xs α i
 
     _⊕<_ : {Y : Set} → List Y → 𝔖.Point Y → 𝔖.Point Y
     _⊕<_ = prepend
@@ -154,11 +149,11 @@ module ⊢ where
       : {Y : Set}
       → (U : List Y)
       → (α : 𝔖.Point Y)
-      → ∀ i → (U ⊕< α) i ≡ ((U ⌢ α 0) ⊕< (α ∘ su_)) i
-    prepend-snoc-id [] α ze = refl
-    prepend-snoc-id [] α (su_ i) = refl
-    prepend-snoc-id (x ∷ U) α ze = refl
-    prepend-snoc-id (x ∷ U) α (su_ i) = prepend-snoc-id U α i
+      → ∀ i → (U ⊕< α) i ≡ ((U ⌢ α 0) ⊕< (α ∘ suc)) i
+    prepend-snoc-id [] α zero = refl
+    prepend-snoc-id [] α (suc i) = refl
+    prepend-snoc-id (x ∷ U) α zero = refl
+    prepend-snoc-id (x ∷ U) α (suc i) = prepend-snoc-id U α i
 
   module Coh where
     mutual
@@ -185,16 +180,16 @@ module ⊢ where
       coh-ϝ {U = U} (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
         coh {U = U} 𝓭[ x ] p α
 
-      coh-ϝ (x ∷ V) (su i) 𝓭[_] (norm-ϝ-cons-su p) α =
+      coh-ϝ (x ∷ V) (suc i) 𝓭[_] (norm-ϝ-cons-su p) α =
         coh-ϝ V i 𝓭[_] p α
 
       coh-ϝ {U = U} .[] .0 𝓭[_] (norm-ϝ-nil-ze p[_]) α =
-        coh 𝓭[ α 0 ] p[ α 0 ] (α ∘ su_)
-          ≡.⟔ 𝓭[ α 0 ] Core.⊢.$¹ (prepend-snoc-id U α)
+        coh 𝓭[ α 0 ] p[ α 0 ] (α ∘ suc)
+          ≡.▪ 𝓭[ α 0 ] Core.⊢.$¹ (prepend-snoc-id U α)
 
-      coh-ϝ {U = U} .[] (su i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
-        coh-ϝ _ i 𝓭[_] p[ α 0 ] (α ∘ su_)
-          ≡.⟔ 𝓭[ α (su i) ] Core.⊢.$¹ (prepend-snoc-id U α)
+      coh-ϝ {U = U} .[] (suc i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
+        coh-ϝ _ i 𝓭[_] p[ α 0 ] (α ∘ suc)
+          ≡.▪ 𝓭[ α (suc i) ] Core.⊢.$¹ (prepend-snoc-id U α)
 
 
   coh

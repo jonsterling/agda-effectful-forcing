@@ -1,12 +1,9 @@
 module Dialogue.Brouwerian where
 
-open import Prelude.Natural
-open import Prelude.Monoidal
+open import Basis
 
 import Dialogue.Core as Core
 open Core hiding (module ⊢)
-
-open Π using (_∘_)
 
 -- In the normalized (Brouwerian) version of the dialogue tree, queries are
 -- given in order.
@@ -22,7 +19,8 @@ data 𝔅 (Y Z : Set) : Set where
     : (Y → 𝔅 Y Z)
     → 𝔅 Y Z
 
+
 -- A dialogue may be run against a choice sequence.
 _$ₙ_ : {Y Z : Set} → 𝔅 Y Z → (Nat → Y) → Z
 (η x) $ₙ α = x
-ϝ 𝓭[_] $ₙ α = 𝓭[ α 0 ] $ₙ (α ∘ su_)
+ϝ 𝓭[_] $ₙ α = 𝓭[ α 0 ] $ₙ (α ∘ suc)

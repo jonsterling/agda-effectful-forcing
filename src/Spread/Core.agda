@@ -1,10 +1,6 @@
 module Spread.Core (X : Set) where
 
-open import Prelude.Natural
-open import Prelude.Path
-open import Prelude.Monoidal
-
-open Π using (_∘_)
+open import Basis
 
 module Neigh where
   data Neigh : Set where
@@ -15,7 +11,7 @@ module Neigh where
 
   len : Neigh → Nat
   len [] = 0
-  len (U ⌢ x) = su (len U)
+  len (U ⌢ x) = suc (len U)
 
   ∣_∣ : Neigh → Nat
   ∣_∣ = len
@@ -35,14 +31,14 @@ module Point where
   head α = α 0
 
   tail : Point → Point
-  tail α = α ∘ su_
+  tail α = α ∘ suc
 
   cons : X → Point → Point
-  cons x α ze = x
-  cons x α (su i) = α i
+  cons x α zero = x
+  cons x α (suc i) = α i
 
-  _∷_ : X → Point → Point
-  _∷_ = cons
+  _<∷_ : X → Point → Point
+  _<∷_ = cons
 
   {-# DISPLAY cons x α = x ∷ α #-}
 
@@ -76,8 +72,8 @@ module Point where
     : Nat
     → Point
     → Neigh
-  take ze α = []
-  take (su n) α = (take n α) ⌢ (α n)
+  take zero α = []
+  take (suc n) α = (take n α) ⌢ (α n)
 
   _[_]
     : Point
@@ -101,39 +97,43 @@ module Point where
       → m ≡ n
       → α ≈ β
       → take m α ≡ take n β
-    take-cong {m = ze} {n = .0} refl q = refl
-    take-cong {m = (su m)} {n = .(su m)} refl q
+    take-cong {m = zero} {n = .0} refl q = refl
+    take-cong {m = (suc m)} {n = .(suc m)} refl q
       rewrite take-cong {m = m} refl q
         | q m
         = refl
 
-    open Nat using (_+_)
-
     su-+-transpose
       : ∀ m n
-      → su (n + m) ≡ n + su m
-    su-+-transpose ze ze = refl
-    su-+-transpose ze (su_ n)
-      rewrite su-+-transpose ze n
+      → suc (n + m) ≡ n + suc m
+    su-+-transpose zero zero = refl
+    su-+-transpose zero (suc n)
+      rewrite su-+-transpose zero n
         = refl
-    su-+-transpose (su m) ze = refl
-    su-+-transpose (su m) (su_ n)
-      rewrite su-+-transpose (su m) n
+    su-+-transpose (suc m) zero = refl
+    su-+-transpose (suc m) (suc n)
+      rewrite su-+-transpose (suc m) n
         = refl
+
+    nat-+-zero
+      : ∀ n
+      → n + 0 ≡ n
+    nat-+-zero zero = refl
+    nat-+-zero (suc n) rewrite nat-+-zero n = refl
 
     prepend-len
       : ∀ U n {α}
       → (U ⨭ α) (n + ∣ U ∣) ≡ α n
-    prepend-len [] n
-      rewrite Nat.⊢.ρ⇒ {n}
-        = refl
+    prepend-len [] n rewrite nat-+-zero n = refl
     prepend-len (U ⌢ x) n =
-      prepend-len U (su n) ≡.⟔
+      prepend-len U (suc n)
+      ≡.▪
         nth-cong
           (U ⌢ x ⨭ _)
           _
           (λ i → refl)
           (su-+-transpose ∣ U ∣ n ≡.⁻¹)
+
 
     prepend-take-len
       : ∀ U {α}
@@ -145,9 +145,9 @@ module Point where
 
     cons-head-tail-id
       : ∀ α
-      → α ≈ (head α ∷ tail α)
-    cons-head-tail-id α ze = refl
-    cons-head-tail-id α (su_ i) = refl
+      → α ≈ (head α <∷ tail α)
+    cons-head-tail-id α zero = refl
+    cons-head-tail-id α (suc i) = refl
 
     prepend-extensional
       : ∀ U α β
@@ -155,9 +155,9 @@ module Point where
       → prepend U α ≈ prepend U β
     prepend-extensional [] α β h = h
     prepend-extensional (U ⌢ x) α β h =
-      prepend-extensional U (x ∷ α) (x ∷ β) λ
-        { ze → refl
-        ; (su j) → h j
+      prepend-extensional U (x <∷ α) (x <∷ β) λ
+        { zero → refl
+        ; (suc j) → h j
         }
 
     prepend-snoc-id

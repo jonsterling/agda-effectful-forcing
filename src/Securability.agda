@@ -1,6 +1,6 @@
 module Securability where
 
-open import Prelude.Natural
+open import Basis
 
 open import Spread.Baire
 open import Dialogue as 𝓓
@@ -13,8 +13,6 @@ infixl 4 _◂_
 data _◂_ (U : Neigh) (φ : Species) : Set where
   η_ : φ U → U ◂ φ
   ϝ : (∀ x → U ⌢ x ◂ φ) → U ◂ φ
-
-open Nat using (_+_; _-_)
 
 -- Proof that a dialogue computes the securability of a node.
 _⊩_◃_

@@ -1,8 +1,6 @@
 module BarTheorem where
 
-open import Prelude.Natural
-open import Prelude.Monoidal hiding (_⇒_)
-open import Prelude.Path
+open import Basis
 
 import Dialogue as 𝓓
 open import Spread.Baire
@@ -12,7 +10,6 @@ import SystemT.Semantics as Sem
 open Sem hiding (module ⊢)
 
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
-  open Π using (_∘_)
 
   ζ[_] : ∀ {U} x → U ◂ 𝔅 → U ⌢ x ◂ 𝔅
   ζ[ x ] (η y) = η 𝔅-mono y
@@ -38,8 +35,8 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       lemma F p α
         rewrite
             𝓓.⊢.coh (𝓑.⟦ F ⟧₀ 𝓓.generic) α ≡.⁻¹
-          | Sem.⊢.soundness α F T.𝒢.⋄ 𝓑.𝒢.⋄ (λ ()) α 𝓓.generic (λ _ 𝓮 f → 𝓓.⊢.generic-diagram α 𝓮 ≡.⟔ ≡.ap¹ α f) ≡.⁻¹ = p α
-
+          | Sem.⊢.soundness α F {_} {𝓑.𝒢.⋄} (λ ()) α 𝓓.generic (λ _ 𝓮 f → 𝓓.⊢.generic-diagram α 𝓮 ≡.▪ ≡.ap¹ α f) ≡.⁻¹
+          = p α
 
       0⋯ : Point
       0⋯ _ = 0
@@ -50,23 +47,23 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         → 𝓭 ⊩ U ◃ 𝔅
         → U ◂ 𝔅
 
-      analyze U (𝓓.η ze) f =
+      analyze U (𝓓.η zero) f =
         η ≡.coe* 𝔅 (Point.⊢.prepend-take-len U) (f 0⋯)
 
-      analyze U (𝓓.η (su n)) f =
+      analyze U (𝓓.η (suc n)) f =
         ϝ λ x →
           analyze (U ⌢ x) (𝓓.η n)
             (≡.coe* 𝔅 (Point.⊢.take-cong (Point.⊢.su-+-transpose ∣ U ∣ n) λ _ → refl)
                ∘ f
-               ∘ x ∷_)
+               ∘ (x <∷_))
 
       analyze U (𝓓.ϝ κ) f =
         ϝ λ x →
           analyze (U ⌢ x) (κ x) λ α →
             ≡.coe*
-              (λ n → 𝔅 ((U ⨭ x ∷ α) [ n ]))
+              (λ n → 𝔅 ((U ⨭ x <∷ α) [ n ]))
               (Point.⊢.su-+-transpose _ (κ x 𝓓.$ₙ α))
-              (𝔅-mono (f (x ∷ α)))
+              (𝔅-mono (f (x <∷ α)))
 
 
   -- The Bar Induction Principle is a corollary to the Bar Theorem.

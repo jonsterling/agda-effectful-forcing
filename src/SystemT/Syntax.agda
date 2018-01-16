@@ -1,12 +1,7 @@
 module SystemT.Syntax where
 
-open import Prelude.Finite
-open import Prelude.Functor
-open import Prelude.Monad
-open import Prelude.Natural
-open import Prelude.Path
-open import Prelude.String
-open import Prelude.Monoidal hiding (_⇒_; _,_)
+open import Basis
+
 
 import SystemT.Context as Ctx
 open Ctx hiding (⋄; _,_)

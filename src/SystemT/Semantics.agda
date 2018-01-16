@@ -1,24 +1,14 @@
 module SystemT.Semantics where
 
-open import Prelude.Finite
-open import Prelude.Functor hiding (map)
-open import Prelude.Monad hiding (_≫=_)
-open import Prelude.Monoidal hiding (_⇒_; _,_)
-open import Prelude.Natural
-open import Prelude.String
-open import Prelude.Path
+open import Basis
 
 import SystemT.Context as Ctx
 open Ctx hiding (⋄; _,_)
-open Π using (_∘_)
 
 import Spread.Baire
 import Dialogue as 𝓓
 
 open import SystemT.Syntax
-
-open Functor (𝓓.𝓓-functor {Nat} {Nat})
-open Monad (𝓓.𝓓-monad {Nat} {Nat})
 
 private
   id : {ℓ : _} {A : Set ℓ} → A → A
@@ -43,14 +33,14 @@ module Predicates (F : Set → Set) where
     ⋄ ()
 
     _,_ : ∀ {n} {Γ : Ctx n} {σ : Type} → ⟦ Γ ⟧ → 𝒱.⟦ σ ⟧ → ⟦ Γ Ctx., σ ⟧
-    (ρ , x) ze = x
-    (ρ , x) (su i) = ρ i
+    (ρ , x) zero = x
+    (ρ , x) (suc i) = ρ i
 
     infixl 5 _,_
 
 rec : {X : Set} → (Nat → X → X) → X → Nat → X
-rec f x ze = x
-rec f x (su n) = f n (rec f x n)
+rec f x zero = x
+rec f x (suc n) = f n (rec f x n)
 
 module T where
   open Predicates id public
@@ -60,8 +50,8 @@ module T where
     → Γ ⊢ᵀ τ
     → 𝒢.⟦ Γ ⟧
     → 𝒱.⟦ τ ⟧
-  ⟦ zero ⟧ _ = ze
-  ⟦ succ m ⟧ ρ = su (⟦ m ⟧ ρ)
+  ⟦ zero ⟧ _ = zero
+  ⟦ succ m ⟧ ρ = suc (⟦ m ⟧ ρ)
   ⟦ rec[ σ ] s z n ⟧ ρ = rec (λ x y → ⟦ s ⟧ (ρ 𝒢., x 𝒢., y )) (⟦ z ⟧ ρ) (⟦ n ⟧ ρ)
   ⟦ ν i p ⟧ ρ rewrite p = ρ i
   ⟦ ƛ t ⟧ ρ = λ x → ⟦ t ⟧ (ρ 𝒢., x)
@@ -92,8 +82,8 @@ module 𝓑 where
     → Γ ⊢ᵀ τ
     → 𝒢.⟦ Γ ⟧
     → 𝒱.⟦ τ ⟧
-  ⟦ zero ⟧ ρ = 𝓓.η ze
-  ⟦ succ m ⟧ ρ = map su_ (⟦ m ⟧ ρ)
+  ⟦ zero ⟧ ρ = 𝓓.η zero
+  ⟦ succ m ⟧ ρ = map suc (⟦ m ⟧ ρ)
   ⟦ rec[ σ ] s z n ⟧ ρ =
     Ext[ σ ]
       (rec (λ x y → ⟦ s ⟧ (ρ 𝒢., 𝓓.η x 𝒢., y)) (⟦ z ⟧ ρ))
@@ -148,27 +138,23 @@ module ⊢ where
   𝓡[_]-Ext-lemma
     : {𝔟 : BaseType}
     → (σ : Type)
-    → (α : Point)
-    → (F[_] : T.𝒱.⟦ 𝔟 ⟧₀ → T.𝒱.⟦ σ ⟧)
-    → (𝓭[_] : 𝓑.𝒱.⟦ 𝔟 ⟧₀ → 𝓑.𝒱.⟦ σ ⟧)
+    → {α : Point}
+    → {F[_] : T.𝒱.⟦ 𝔟 ⟧₀ → T.𝒱.⟦ σ ⟧}
+    → {𝓭[_] : 𝓑.𝒱.⟦ 𝔟 ⟧₀ → 𝓑.𝒱.⟦ σ ⟧}
     → (∀ k → 𝓡[ σ ] α F[ k ] 𝓭[ k ])
-    → (G : T.𝒱.⟦ 𝔟 ⟧₀)
+    → {G : T.𝒱.⟦ 𝔟 ⟧₀}
     → (𝓷 : 𝓑.𝒱.⟦ ` 𝔟 ⟧)
     → 𝓡[ ` 𝔟 ] α G 𝓷
     → 𝓡[ σ ] α F[ G ] (𝓑.Ext[ σ ] 𝓭[_] 𝓷)
 
-  𝓡[ ` 𝔟 ]-Ext-lemma α F[_] 𝓭[_] F~G G 𝓷 G~𝓷 =
-    F~G G
-      ≡.⟓ ≡.ap¹ (λ k → 𝓭[ k ] $ α) G~𝓷
-      ≡.⟓ ⊢.$-≫= 𝓷 α
+  𝓡[ ` 𝔟 ]-Ext-lemma F∼G 𝓷 G∼𝓷 =
+    ⊢.$-≫= 𝓷 _
+      ≡.▪ ≡.ap¹ _ G∼𝓷
+      ≡.▪ F∼G _
 
-  𝓡[ σ ⇒ τ ]-Ext-lemma α F[_] 𝓭[_] F~G G 𝓷 G~𝓷 H 𝓮 H~𝓮 =
+  𝓡[ σ ⇒ τ ]-Ext-lemma F~G 𝓷 G~𝓷 H 𝓮 H~𝓮 =
     𝓡[ τ ]-Ext-lemma
-      α
-      (λ k → F[ k ] H)
-      (λ k → 𝓭[ k ] 𝓮)
       (λ k → F~G k H 𝓮 H~𝓮)
-      G
       𝓷
       G~𝓷
 
@@ -182,68 +168,61 @@ module ⊢ where
     → {σ : Type}
     → (α : Point)
     → (M : Γ ⊢ᵀ σ)
-    → (ρ₀ : T.𝒢.⟦ Γ ⟧)
-    → (ρ₁ : 𝓑.𝒢.⟦ Γ ⟧)
+    → {ρ₀ : T.𝒢.⟦ Γ ⟧}
+    → {ρ₁ : 𝓑.𝒢.⟦ Γ ⟧}
     → 𝓡⋆[ Γ ] α ρ₀ ρ₁
     → 𝓡[ σ ] α (T.⟦ M ⟧ ρ₀) (𝓑.⟦ M ⟧ ρ₁)
 
-  soundness α zero ρ₀ ρ₁ ρ₀~ρ₁ =
+  soundness _ zero ρ₀~ρ₁ =
     refl
 
-  soundness α (succ m) ρ₀ ρ₁ ρ₀~ρ₁ rewrite soundness α m ρ₀ ρ₁ ρ₀~ρ₁ =
-    ⊢.$-natural su_ (𝓑.⟦ m ⟧ ρ₁) α
+  soundness _ (succ m) ρ₀~ρ₁ rewrite soundness _ m  ρ₀~ρ₁ =
+    ⊢.$-natural suc (𝓑.⟦ m ⟧ _) _
 
-  soundness α (rec[ σ ] s z n) ρ₀ ρ₁ ρ₀∼ρ₁ = 𝓡[ σ ]-Ext-lemma α R 𝓻 R∼𝓻 N 𝓷 N∼𝓷
+  soundness _ (rec[ σ ] s z n) ρ₀∼ρ₁ =
+    𝓡[ σ ]-Ext-lemma R∼𝓻 _ (soundness _ n ρ₀∼ρ₁)
+
     where
-      S = λ x y → T.⟦ s ⟧ (ρ₀ T.𝒢., x T.𝒢., y)
-      𝓼 = λ x y → 𝓑.⟦ s ⟧ (ρ₁ 𝓑.𝒢., x 𝓑.𝒢., y)
+      S = λ x y → T.⟦ s ⟧ (_ T.𝒢., x T.𝒢., y)
+      𝓼 = λ x y → 𝓑.⟦ s ⟧ (_ 𝓑.𝒢., x 𝓑.𝒢., y)
 
-      S∼𝓼 : 𝓡[ ` nat ⇒ σ ⇒ σ ] α S 𝓼
+      S∼𝓼 : 𝓡[ ` nat ⇒ σ ⇒ σ ] _ S 𝓼
       S∼𝓼 G 𝓮 G∼𝓮 G′ 𝓮′ G′∼𝓮′ =
-        soundness
-          α
-          s
-          (ρ₀ T.𝒢., G T.𝒢., G′)
-          (ρ₁ 𝓑.𝒢., 𝓮 𝓑.𝒢., 𝓮′)
-          (λ { ze → G′∼𝓮′ ; (su ze) → G∼𝓮 ; (su (su i)) → ρ₀∼ρ₁ i })
-
-      Z = T.⟦ z ⟧ ρ₀
-      𝔃 = 𝓑.⟦ z ⟧ ρ₁
-      Z∼𝔃 = soundness α z ρ₀ ρ₁ ρ₀∼ρ₁
-
-      N = T.⟦ n ⟧ ρ₀
-      𝓷 = 𝓑.⟦ n ⟧ ρ₁
-      N∼𝓷 = soundness α n ρ₀ ρ₁ ρ₀∼ρ₁
+        soundness _ s λ {
+          zero → G′∼𝓮′ ;
+          (suc zero) → G∼𝓮 ;
+          (suc (suc i)) → ρ₀∼ρ₁ i
+        }
 
       R : Nat → T.𝒱.⟦ σ ⟧
-      R k = rec S Z k
+      R k = rec S (T.⟦ z ⟧ _) k
 
       𝓻 : Nat → 𝓑.𝒱.⟦ σ ⟧
-      𝓻 k = rec (𝓼 ∘ η_) 𝔃 k
+      𝓻 k = rec (𝓼 ∘ η_) (𝓑.⟦ z ⟧ _) k
 
-      R∼𝓻 : (k : Nat) → 𝓡[ σ ] α (R k) (𝓻 k)
-      R∼𝓻 ze = Z∼𝔃
-      R∼𝓻 (su_ k) = S∼𝓼 k (η k) refl (R k) (𝓻 k) (R∼𝓻 k)
+      R∼𝓻 : (k : Nat) → 𝓡[ σ ] _ (R k) (𝓻 k)
+      R∼𝓻 zero = soundness _ z ρ₀∼ρ₁
+      R∼𝓻 (suc k) = S∼𝓼 k (η k) refl (R k) (rec (𝓼 ∘ η_) (𝓑.⟦ z ⟧ _) k) (R∼𝓻 k)
 
-  soundness α (ν i p) ρ₀ ρ₁ ρ₀~ρ₁ rewrite p =
+  soundness _ (ν i p) ρ₀~ρ₁ rewrite p =
     ρ₀~ρ₁ i
 
-  soundness α (ƛ M) ρ₀ ρ₁ ρ₀~ρ₁ G 𝓮 G~𝓮 =
-    soundness α M (ρ₀ T.𝒢., G) (ρ₁ 𝓑.𝒢., 𝓮) λ
-      { ze → G~𝓮
-      ; (su i) → ρ₀~ρ₁ i
+  soundness _ (ƛ M) ρ₀~ρ₁ G 𝓮 G~𝓮 =
+    soundness _ M λ
+      { zero → G~𝓮
+      ; (suc i) → ρ₀~ρ₁ i
       }
 
-  soundness α (M · N) ρ₀ ρ₁ ρ₀~ρ₁ =
-    soundness α M ρ₀ ρ₁ ρ₀~ρ₁
-      (T.⟦ N ⟧ ρ₀)
-      (𝓑.⟦ N ⟧ ρ₁)
-      (soundness α N ρ₀ ρ₁ ρ₀~ρ₁)
+  soundness _ (M · N) ρ₀~ρ₁ =
+    soundness _ M ρ₀~ρ₁
+      (T.⟦ N ⟧ _)
+      (𝓑.⟦ N ⟧ _)
+      (soundness _ N ρ₀~ρ₁)
 
   soundness₀
     : {𝔟 : _}
     → (α : Point)
     → (M : Ctx.⋄ ⊢ᵀ ` 𝔟)
     → T.⟦ M ⟧₀ ≡ 𝓑.⟦ M ⟧₀ $ α
-  soundness₀ α M =
-    soundness α M T.𝒢.⋄ 𝓑.𝒢.⋄ (λ ())
+  soundness₀ _ M =
+    soundness _ M (λ ())
