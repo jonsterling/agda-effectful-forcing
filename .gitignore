@@ -1,2 +1,16 @@
 *.agdai
 *~
+
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.ptb
+*.upa
+*.upb
+*.xdv
+*.out
+
+auto/
