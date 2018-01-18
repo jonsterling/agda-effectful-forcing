@@ -3,25 +3,25 @@ open import Basis
 \end{code}
 
 %<*spread>
-In order to develop intuitionistic analysis, Brouwer introduced a new notion of topological space called a ``spread'', which was based on the idea of taking the basic opens (what we here call ``neighborhoods'') of a space as primitive, rather than the points. A spread is a species\footnote{``Species'' is Brouwer's word for what we   now call a ``predicate''.} of these neighborhoods obeying certain closure conditions, which specifies the basic opens of the space; the points of a spread are then a derived notion. For our purposes, it actually suffices to work relative to the \emph{universal spread}, which is the total species $\top$.
+In order to develop intuitionistic analysis, Brouwer introduced a new notion of topological space called a ``spread'', which was based on the idea of taking the basic opens (what we here call prefixes'') of a space as primitive, rather than the points. A spread is a species\footnote{``Species'' is Brouwer's word for what we   now call a ``predicate''.} of these prefixes obeying certain closure conditions, which specifies the basic opens of the space; the points of a spread are then a derived notion. For our purposes, it actually suffices to work relative to the \emph{universal spread}, which is the total species $\top$.
 
 \begin{remark}
   Today, more general notions of spread can be found in both formal topology~\cite{coquand-sambin-smith-valentini:2003} as well as the theory of locales~\cite{maclane-moerdijk:1992}; locales and classical spaces enjoy a duality which is neutralized under the equivalence of the sober spaces and the spatial locales.
 \end{remark}
 
-Brouwer thought of these neighborhoods as finite lists of natural numbers, each of which represented a ``choice''; rather than adopting the natural numbers as the representation of choices, we simply fix a set $X$ which will serve this purpose.\footnote{As a matter of engineering, it is easier to develop a theory if not everything at once is a natural number, even if later on we intend to insantiate it that way.}
+Brouwer thought of these prefixes as finite lists of natural numbers, each of which represented a ``choice''; rather than adopting the natural numbers as the representation of choices, we simply fix a set $X$ which will serve this purpose.\footnote{As a matter of engineering, it is easier to develop a theory if not everything at once is a natural number, even if later on we intend to insantiate it that way.}
 
 \begin{code}
 module Spread.Core (X : Set) where
 
-module Neigh where
-  data Neigh : Set where
-    [] : Neigh
-    _⌢_ : Neigh → X → Neigh
+module Prefix where
+  data Prefix : Set where
+    [] : Prefix
+    _⌢_ : Prefix → X → Prefix
 
   infixl 5 _⌢_
 
-  ∣_∣ : Neigh → Nat
+  ∣_∣ : Prefix → Nat
   ∣ [] ∣ = 0
   ∣ U ⌢ x ∣ = suc ∣ U ∣
 \end{code}
@@ -30,7 +30,7 @@ module Neigh where
 \begin{code}
 
   module ⊢ where
-    _⟨⌢⟩_ : ∀ {U V : Neigh} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
+    _⟨⌢⟩_ : ∀ {U V : Prefix} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
     refl ⟨⌢⟩ refl = refl
 \end{code}
 }
@@ -57,20 +57,20 @@ module Point where
 The natural notion of equivalence for points is the extensional (pointwise) equivalence.
 \begin{code}
   _≈_ : Point → Point → Set
-  α ≈ β = (i : Nat) → α i ≡ β i
+  α ≈ β = ∀ i → α i ≡ β i
 \end{code}
 
 \AgdaHide{
 \begin{code}
-  open Neigh hiding (module ⊢)
+  open Prefix hiding (module ⊢)
 \end{code}
 }
 
-A neighborhood can be prepended to a point.
+A prefix can be prepended to a point.
 \begin{code}
-  _<++_ : Neigh → Point → Point
-  ([] <++ α) i = α i
-  ((U ⌢ x) <++ α) = U <++ (x <∷ α)
+  _<++_ : Prefix → Point → Point
+  [] <++ α = α
+  (U ⌢ x) <++ α = U <++ (x <∷ α)
 
   infixr 3 _<++_
   infix 6 _[_]
@@ -78,7 +78,7 @@ A neighborhood can be prepended to a point.
 
 We provide an operation to take the $n$th approximation of a point $\alpha$:
 \begin{code}
-  _[_] : Point → Nat → Neigh
+  _[_] : Point → Nat → Prefix
   α [ zero ] = []
   α [ suc n ] = α [ n ] ⌢ α n
 
@@ -144,7 +144,7 @@ We provide an operation to take the $n$th approximation of a point $\alpha$:
     prepend-take-len [] = refl
     prepend-take-len (U ⌢ x) =
       prepend-take-len U
-        Neigh.⊢.⟨⌢⟩ prepend-len U 0
+        Prefix.⊢.⟨⌢⟩ prepend-len U 0
 
     cons-head-tail-id
       : ∀ α
@@ -172,15 +172,15 @@ We provide an operation to take the $n$th approximation of a point $\alpha$:
 \end{code}
 }
 
-\paragraph{Species of neighborhoods}
-We give a definition of species of neighborhoods, and what it means for them to be \emph{monotone} and \emph{hereditary}; instead of \emph{hereditary}, we could have called such species \emph{inductive}. Finally, one we give an ordering on species which is just implication of the underline predicates. As a matter of convention, we write species with German letters.
+\paragraph{Species of prefixes}
+We give a definition of species of prefixes, and what it means for them to be \emph{monotone} and \emph{hereditary}; instead of \emph{hereditary}, we could have called such species \emph{inductive}. Finally, one we give an ordering on species which is just implication of the underline predicates. As a matter of convention, we write species with German letters.
 
 \begin{code}
 module Species where
-  open Neigh
+  open Prefix
 
   Species : Set₁
-  Species = Neigh → Set
+  Species = Prefix → Set
 
   monotone : Species → Set
   monotone 𝔄 = ∀ {U} x → 𝔄 U → 𝔄 (U ⌢ x)
@@ -195,7 +195,7 @@ module Species where
 
 \begin{code}
 open Point public hiding (module ⊢)
-open Neigh public hiding (module Neigh; module ⊢)
+open Prefix public hiding (module Prefix; module ⊢)
 open Species public
 
 \end{code}
