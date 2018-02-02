@@ -5,8 +5,6 @@ open import Basis
 import Dialogue.Core as Core
 open Core hiding (module ⊢)
 
-open import Dialogue.Brouwerian
-
 private
   _⌢_ : {Y : Set} → List Y → Y → List Y
   [] ⌢ x = x ∷ []
@@ -158,7 +156,7 @@ module ⊢ where
         → (𝓭 : 𝔈 Nat Y Z)
         → (p : U ⊩ 𝓭 norm)
         → (α : 𝔖.Point Y)
-        → 𝓭 ⋄ (U <++ α) ≡ norm↓ p ⋄ₙ α
+        → 𝔈[ 𝓭 ⋄ (U <++ α) ] ≡ 𝔅[ norm↓ p ⋄ α ]
       coh .(η x) (norm-η x) α = refl
       coh _ (norm-ϝ p) = coh-ϝ _ _ _ _ p
 
@@ -169,7 +167,7 @@ module ⊢ where
         → (𝓭[_] : Y → 𝔈 Nat Y Z)
         → (p : U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V)
         → (α : 𝔖.Point Y)
-        → 𝓭[ (V <++ α) i ] ⋄ (U <++ α) ≡ norm↓-ϝ p ⋄ₙ α
+        → 𝔈[ 𝓭[ (V <++ α) i ] ⋄ (U <++ α) ] ≡ 𝔅[ norm↓-ϝ p ⋄ α ]
 
       coh-ϝ U (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
         coh 𝓭[ x ] p α
@@ -190,7 +188,7 @@ module ⊢ where
     : {Y Z : Set}
     → (𝓭 : 𝔈 Nat Y Z)
     → (α : 𝔖.Point Y)
-    → 𝓭 ⋄ α ≡ norm 𝓭 ⋄ₙ α
+    → 𝔈[ 𝓭 ⋄ α ] ≡ 𝔅[ norm 𝓭 ⋄ α ]
   coh 𝓭 =
     Coh.coh 𝓭
       (norm↑ [] 𝓭)

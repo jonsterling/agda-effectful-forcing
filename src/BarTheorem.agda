@@ -62,7 +62,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
           analyze (U ⌢ x) (κ x) λ α →
             ≡.coe*
               (λ n → 𝔅 ((U <++ x <∷ α) [ n ]))
-              (Point.⊢.su-+-transpose _ (κ x 𝓓.⋄ₙ α))
+              (Point.⊢.su-+-transpose _ 𝓓.𝔅[ κ x ⋄ α ])
               (𝔅-mono (f (x <∷ α)))
 
 
