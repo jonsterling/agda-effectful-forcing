@@ -135,21 +135,16 @@ module ⊢ where
   import Spread.Core as 𝔖
 
   private
-    prepend : {Y : Set} → List Y → 𝔖.Point Y → 𝔖.Point Y
-    prepend [] α = α
-    prepend (x ∷ xs) α zero = x
-    prepend (x ∷ xs) α (suc i) = prepend xs α i
-
-    _⊕<_ : {Y : Set} → List Y → 𝔖.Point Y → 𝔖.Point Y
-    _⊕<_ = prepend
-
-    {-# DISPLAY prepend U α = U ⊕< α #-}
+    _<++_ : {Y : Set} → List Y → 𝔖.Point Y → 𝔖.Point Y
+    [] <++ α = α
+    ((x ∷ xs) <++ α) zero = x
+    ((x ∷ xs) <++ α) (suc i) = (xs <++ α) i
 
     prepend-snoc-id
       : {Y : Set}
       → (U : List Y)
       → (α : 𝔖.Point Y)
-      → ∀ i → (U ⊕< α) i ≡ ((U ⌢ α 0) ⊕< (α ∘ suc)) i
+      → ∀ i → (U <++ α) i ≡ ((U ⌢ α 0) <++ (α ∘ suc)) i
     prepend-snoc-id [] α zero = refl
     prepend-snoc-id [] α (suc i) = refl
     prepend-snoc-id (x ∷ U) α zero = refl
@@ -163,7 +158,7 @@ module ⊢ where
         → (𝓭 : 𝔈 Nat Y Z)
         → (p : U ⊩ 𝓭 norm)
         → (α : 𝔖.Point Y)
-        → 𝓭 $ (U ⊕< α) ≡ norm↓ p $ₙ α
+        → 𝓭 $ (U <++ α) ≡ norm↓ p $ₙ α
       coh .(η x) (norm-η x) α = refl
       coh _ (norm-ϝ {i = i} {𝓭[_] = 𝓭[_]} p) α =
         coh-ϝ _ i 𝓭[_] p α
@@ -175,7 +170,7 @@ module ⊢ where
         → (𝓭[_] : Y → 𝔈 Nat Y Z)
         → (p : U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V)
         → (α : 𝔖.Point Y)
-        → 𝓭[ (V ⊕< α) i ] $ (U ⊕< α) ≡ norm↓-ϝ p $ₙ α
+        → 𝓭[ (V <++ α) i ] $ (U <++ α) ≡ norm↓-ϝ p $ₙ α
 
       coh-ϝ {U = U} (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
         coh {U = U} 𝓭[ x ] p α

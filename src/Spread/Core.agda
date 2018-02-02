@@ -2,24 +2,19 @@ module Spread.Core (X : Set) where
 
 open import Basis
 
-module Neigh where
-  data Neigh : Set where
-    [] : Neigh
-    _⌢_ : Neigh → X → Neigh
+module Node where
+  data Node : Set where
+    [] : Node
+    _⌢_ : Node → X → Node
 
   infixl 5 _⌢_
 
-  len : Neigh → Nat
-  len [] = 0
-  len (U ⌢ x) = suc (len U)
-
-  ∣_∣ : Neigh → Nat
-  ∣_∣ = len
-
-  {-# DISPLAY len U = ∣ U ∣ #-}
+  ∣_∣ : Node → Nat
+  ∣ [] ∣ = 0
+  ∣ U ⌢ x ∣ = suc ∣ U ∣
 
   module ⊢ where
-    _⟨⌢⟩_ : ∀ {U V : Neigh} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
+    _⟨⌢⟩_ : ∀ {U V : Node} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
     refl ⟨⌢⟩ refl = refl
 
 module Point where
@@ -33,55 +28,29 @@ module Point where
   tail : Point → Point
   tail α = α ∘ suc
 
-  cons : X → Point → Point
-  cons x α zero = x
-  cons x α (suc i) = α i
-
   _<∷_ : X → Point → Point
-  _<∷_ = cons
-
-  {-# DISPLAY cons x α = x ∷ α #-}
+  (x <∷ α) zero = x
+  (x <∷ α) (suc i) = α i
 
   _≈_ : Point → Point → Set
   α ≈ β = (i : Nat) → α i ≡ β i
 
-  open Neigh hiding (module ⊢)
+  open Node hiding (module ⊢)
 
-  prepend
-    : Neigh
-    → Point
-    → Point
-  prepend [] α i =
-    α i
-  prepend (U ⌢ x) α =
-    prepend U (cons x α)
+  _<++_ : Node → Point → Point
+  [] <++ α = α
+  (U ⌢ x) <++ α = U <++ (x <∷ α)
 
-  _⨭_
-    : Neigh
-    → Point
-    → Point
-  _⨭_ =
-    prepend
-
-  infixr 3 _⨭_
+  infixr 3 _<++_
   infix 2 _[_]
-
-  {-# DISPLAY prepend U α = U ⨭ α #-}
-
-  take
-    : Nat
-    → Point
-    → Neigh
-  take zero α = []
-  take (suc n) α = (take n α) ⌢ (α n)
+  infix 1 _≈_
 
   _[_]
     : Point
     → Nat
-    → Neigh
-  α [ n ] = take n α
-
-  {-# DISPLAY take n α = α [ n ] #-}
+    → Node
+  α [ zero ] = []
+  α [ suc n ] = (α [ n ]) ⌢ α n
 
   module ⊢ where
     nth-cong
@@ -96,7 +65,7 @@ module Point where
       : ∀ {α β m n}
       → m ≡ n
       → α ≈ β
-      → take m α ≡ take n β
+      → (α [ m ]) ≡ (β [ n ])
     take-cong {m = zero} {n = .0} refl q = refl
     take-cong {m = (suc m)} {n = .(suc m)} refl q
       rewrite take-cong {m = m} refl q
@@ -123,13 +92,13 @@ module Point where
 
     prepend-len
       : ∀ U n {α}
-      → (U ⨭ α) (n + ∣ U ∣) ≡ α n
+      → (U <++ α) (n + ∣ U ∣) ≡ α n
     prepend-len [] n rewrite nat-+-zero n = refl
     prepend-len (U ⌢ x) n =
       prepend-len U (suc n)
       ≡.▪
         nth-cong
-          (U ⌢ x ⨭ _)
+          (U ⌢ x <++ _)
           _
           (λ i → refl)
           (su-+-transpose ∣ U ∣ n ≡.⁻¹)
@@ -137,11 +106,11 @@ module Point where
 
     prepend-take-len
       : ∀ U {α}
-      → take ∣ U ∣ (U ⨭ α) ≡ U
+      → ((U <++ α) [ ∣ U ∣ ]) ≡ U
     prepend-take-len [] = refl
     prepend-take-len (U ⌢ x) =
       prepend-take-len U
-        Neigh.⊢.⟨⌢⟩ prepend-len U 0
+        Node.⊢.⟨⌢⟩ prepend-len U 0
 
     cons-head-tail-id
       : ∀ α
@@ -152,7 +121,7 @@ module Point where
     prepend-extensional
       : ∀ U α β
       → α ≈ β
-      → prepend U α ≈ prepend U β
+      → U <++ α ≈ U <++ β
     prepend-extensional [] α β h = h
     prepend-extensional (U ⌢ x) α β h =
       prepend-extensional U (x <∷ α) (x <∷ β) λ
@@ -162,23 +131,23 @@ module Point where
 
     prepend-snoc-id
       : ∀ U α
-      → (U ⨭ α) ≈ (U ⌢ head α ⨭ tail α)
+      → (U <++ α) ≈ (U ⌢ head α <++ tail α)
     prepend-snoc-id U α =
       prepend-extensional U _ _ (cons-head-tail-id α)
 
 module Species where
-  open Neigh
+  open Node
 
   Species : Set₁
   Species =
-    Neigh
+    Node
       → Set
 
   monotone
     : Species
     → Set
   monotone 𝔄 =
-    {U : Neigh} {x : X}
+    {U : Node} {x : X}
       → 𝔄 U
       → 𝔄 (U ⌢ x)
 
@@ -186,7 +155,7 @@ module Species where
     : Species
     → Set
   hereditary 𝔄 =
-    {U : Neigh}
+    {U : Node}
       → (∀ x → 𝔄 (U ⌢ x))
       → 𝔄 U
 
@@ -194,5 +163,5 @@ module Species where
   𝔄 ⊑ 𝔅 = ∀ x → 𝔄 x → 𝔅 x
 
 open Point public hiding (module ⊢)
-open Neigh public hiding (module Neigh; module ⊢)
+open Node public hiding (module Node; module ⊢)
 open Species public

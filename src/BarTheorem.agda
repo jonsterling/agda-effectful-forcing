@@ -42,7 +42,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       0⋯ _ = 0
 
       analyze
-        : (U : Neigh)
+        : (U : Node)
         → (𝓭 : 𝓓.𝔅 Nat Nat)
         → 𝓭 ⊩ U ◃ 𝔅
         → U ◂ 𝔅
@@ -61,7 +61,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         ϝ λ x →
           analyze (U ⌢ x) (κ x) λ α →
             ≡.coe*
-              (λ n → 𝔅 ((U ⨭ x <∷ α) [ n ]))
+              (λ n → 𝔅 ((U <++ x <∷ α) [ n ]))
               (Point.⊢.su-+-transpose _ (κ x 𝓓.$ₙ α))
               (𝔅-mono (f (x <∷ α)))
 
@@ -74,7 +74,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
     where
 
       relabel
-        : (U : Neigh)
+        : (U : Node)
         → (U ◂ 𝔅)
         → 𝔄 U
 
