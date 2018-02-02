@@ -21,29 +21,29 @@ mutual
 
     norm-ϝ
       : ∀ {i 𝓭[_]}
-      → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ U
-      → U ⊩ β⟨ i ⟩ 𝓭[_] norm
+      → U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ U
+      → U ⊩ ?⟨ i ⟩ 𝓭[_] norm
 
-  data _⊩β⟨_⟩_norm⊣_ {Y Z : Set} (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
+  data _⊩?⟨_⟩_norm⊣_ {Y Z : Set} (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
     norm-ϝ-cons-ze
       : ∀ {V x 𝓭[_]}
       → U ⊩ 𝓭[ x ] norm
-      → U ⊩β⟨ 0 ⟩ 𝓭[_] norm⊣ (x ∷ V)
+      → U ⊩?⟨ 0 ⟩ 𝓭[_] norm⊣ (x ∷ V)
 
     norm-ϝ-cons-su
       : ∀ {V x i 𝓭[_]}
-      → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V
-      → U ⊩β⟨ suc i ⟩ 𝓭[_] norm⊣ (x ∷ V)
+      → U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ V
+      → U ⊩?⟨ suc i ⟩ 𝓭[_] norm⊣ (x ∷ V)
 
     norm-ϝ-nil-ze
       : ∀ {𝓭[_]}
       → (∀ x → (U ⌢ x) ⊩ 𝓭[ x ] norm)
-      → U ⊩β⟨ 0 ⟩ 𝓭[_] norm⊣ []
+      → U ⊩?⟨ 0 ⟩ 𝓭[_] norm⊣ []
 
     norm-ϝ-nil-su
       : ∀ {i 𝓭[_]}
-      → (∀ x → (U ⌢ x) ⊩β⟨ i ⟩ 𝓭[_] norm⊣ [])
-      → U ⊩β⟨ suc i ⟩ 𝓭[_] norm⊣ []
+      → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ 𝓭[_] norm⊣ [])
+      → U ⊩?⟨ suc i ⟩ 𝓭[_] norm⊣ []
 
 -- Next, we show that the proof-theoretic characterization of
 -- tree normalizability was sound, i.e. that whenever the judgment
@@ -67,7 +67,7 @@ mutual
     → {U V : _}
     → {𝓭[_] : Y → 𝔈 Nat Y Z}
     → {i : Nat}
-    → U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V
+    → U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ V
     → 𝔅 Y Z
 
   norm↓-ϝ (norm-ϝ-cons-ze p) =
@@ -94,7 +94,7 @@ mutual
   norm↑ U (η x) =
     norm-η x
 
-  norm↑ U (β⟨ i ⟩ 𝓭[_]) =
+  norm↑ U (?⟨ i ⟩ 𝓭[_]) =
     norm-ϝ (norm↑-ϝ _ _ i 𝓭[_])
 
   norm↑-ϝ
@@ -102,7 +102,7 @@ mutual
     → (U V : _)
     → (i : Nat)
     → (𝓭 : Y → 𝔈 Nat Y Z)
-    → U ⊩β⟨ i ⟩ 𝓭 norm⊣ V
+    → U ⊩?⟨ i ⟩ 𝓭 norm⊣ V
 
   norm↑-ϝ U [] zero 𝓭 =
     norm-ϝ-nil-ze λ x →
@@ -165,7 +165,7 @@ module ⊢ where
         → (U : _) (V : _)
         → (i : Nat)
         → (𝓭[_] : Y → 𝔈 Nat Y Z)
-        → (p : U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V)
+        → (p : U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ V)
         → (α : 𝔖.Point Y)
         → 𝔈[ 𝓭[ (V <++ α) i ] ⋄ (U <++ α) ] ≡ 𝔅[ norm↓-ϝ p ⋄ α ]
 

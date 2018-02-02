@@ -1,13 +1,15 @@
 module BarTheorem where
 
 open import Basis
-
-import Dialogue as 𝓓
 open import Spread.Baire
 open import Securability
 open import SystemT.Syntax
+
+import Dialogue as 𝓓
 import SystemT.Semantics as Sem
+
 open Sem hiding (module ⊢)
+open 𝓓 hiding (module ⊢)
 
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
@@ -31,11 +33,11 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       lemma
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
         → F ⊩ [] ◃ᵀ 𝔅
-        → 𝓓.norm (𝓑.⟦ F ⟧₀ 𝓓.generic) ⊩ [] ◃ 𝔅
+        → 𝓓.norm (𝓑.⟦ F ⟧₀ generic) ⊩ [] ◃ 𝔅
       lemma F p α
         rewrite
-            𝓓.⊢.coh (𝓑.⟦ F ⟧₀ 𝓓.generic) α ≡.⁻¹
-          | Sem.⊢.soundness α F {_} {𝓑.𝒢.⋄} (λ ()) α 𝓓.generic (λ _ 𝓮 f → 𝓓.⊢.generic-diagram α 𝓮 ≡.▪ ≡.ap¹ α f) ≡.⁻¹
+            𝓓.⊢.coh (𝓑.⟦ F ⟧₀ generic) α ≡.⁻¹
+          | Sem.⊢.soundness α F {_} {𝓑.𝒢.⋄} (λ ()) α generic (λ _ 𝓮 f → 𝓓.⊢.generic-diagram α 𝓮 ≡.▪ ≡.ap¹ α f) ≡.⁻¹
           = p α
 
       0⋯ : Point
@@ -47,22 +49,22 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         → 𝓭 ⊩ U ◃ 𝔅
         → U ◂ 𝔅
 
-      analyze U (𝓓.η zero) f =
+      analyze U (η zero) f =
         η ≡.coe* 𝔅 (Point.⊢.prepend-take-len U) (f 0⋯)
 
-      analyze U (𝓓.η (suc n)) f =
+      analyze U (η (suc n)) f =
         ϝ λ x →
           analyze (U ⌢ x) (𝓓.η n)
             (≡.coe* 𝔅 (Point.⊢.take-cong (Point.⊢.su-+-transpose ∣ U ∣ n) λ _ → refl)
                ∘ f
                ∘ (x <∷_))
 
-      analyze U (𝓓.ϝ κ) f =
+      analyze U (ϝ κ) f =
         ϝ λ x →
           analyze (U ⌢ x) (κ x) λ α →
             ≡.coe*
               (λ n → 𝔅 ((U <++ x <∷ α) [ n ]))
-              (Point.⊢.su-+-transpose _ 𝓓.𝔅[ κ x ⋄ α ])
+              (Point.⊢.su-+-transpose _ 𝔅[ κ x ⋄ α ])
               (𝔅-mono (f (x <∷ α)))
 
 

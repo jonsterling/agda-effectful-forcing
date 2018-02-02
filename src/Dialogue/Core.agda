@@ -12,7 +12,7 @@ data 𝔈 (X Y Z : Set) : Set where
 
   -- β⟨ i ⟩ 𝓭[_] means that we request the ith element x of the choice sequence
   -- and proceed with 𝓭[x].
-  β⟨_⟩
+  ?⟨_⟩
     : X
     → (Y → 𝔈 X Y Z)
     → 𝔈 X Y Z
@@ -36,12 +36,12 @@ data 𝔅 (Y Z : Set) : Set where
 instance
   𝔈-functor : {X Y : Set} → Functor (𝔈 X Y)
   Functor.map 𝔈-functor f (η x) = η (f x)
-  Functor.map 𝔈-functor f (β⟨ i ⟩ 𝓭[_]) = β⟨ i ⟩ λ x → map f 𝓭[ x ]
+  Functor.map 𝔈-functor f (?⟨ i ⟩ 𝓭[_]) = ?⟨ i ⟩ λ x → map f 𝓭[ x ]
 
   𝔈-monad : {X Y : Set} → Monad (𝔈 X Y)
   Monad.return_ 𝔈-monad = η_
   Monad.bind 𝔈-monad κ (η x) = κ x
-  Monad.bind 𝔈-monad κ (β⟨ i ⟩ 𝓭[_]) = β⟨ i ⟩ λ x → Monad.bind 𝔈-monad κ 𝓭[ x ]
+  Monad.bind 𝔈-monad κ (?⟨ i ⟩ 𝓭[_]) = ?⟨ i ⟩ λ x → Monad.bind 𝔈-monad κ 𝓭[ x ]
 
 
 -- An Escardó dialogue may be run against a choice sequence.
@@ -51,7 +51,7 @@ instance
   → (X → Y)
   → Z
 𝔈[ (η x) ⋄ α ] = x
-𝔈[ β⟨ i ⟩ 𝓭[_] ⋄ α ] =
+𝔈[ ?⟨ i ⟩ 𝓭[_] ⋄ α ] =
   𝔈[ 𝓭[ α i ] ⋄ α ]
 
 
@@ -67,7 +67,7 @@ generic
   → 𝔈 X Y Y
 generic 𝓭 =
   𝓭 ≫= λ i →
-    β⟨ i ⟩ η_
+    ?⟨ i ⟩ η_
 
 
 module ⊢ where
@@ -81,7 +81,7 @@ module ⊢ where
   ⋄-extensional (η _) _ =
     refl
 
-  ⋄-extensional (β⟨ i ⟩ 𝓭[_]) {α = α} {β = β} h rewrite h i =
+  ⋄-extensional (?⟨ i ⟩ 𝓭[_]) {α = α} {β = β} h rewrite h i =
     ⋄-extensional 𝓭[ β i ] h
 
 
@@ -95,7 +95,7 @@ module ⊢ where
   ⋄-natural f (η x) α =
     refl
 
-  ⋄-natural f (β⟨ i ⟩ 𝓭[_]) α =
+  ⋄-natural f (?⟨ i ⟩ 𝓭[_]) α =
     ⋄-natural f 𝓭[ α i ] α
 
 
@@ -109,7 +109,7 @@ module ⊢ where
   ⋄-commutes-with-≫= (η x) α =
     refl
 
-  ⋄-commutes-with-≫= (β⟨ i ⟩ 𝓭[_]) α =
+  ⋄-commutes-with-≫= (?⟨ i ⟩ 𝓭[_]) α =
     ⋄-commutes-with-≫= 𝓭[ α i ] α
 
 
@@ -122,5 +122,5 @@ module ⊢ where
   generic-diagram α (η x) =
     refl
 
-  generic-diagram α (β⟨ i ⟩ 𝓭[_]) =
+  generic-diagram α (?⟨ i ⟩ 𝓭[_]) =
     generic-diagram α 𝓭[ α i ]
