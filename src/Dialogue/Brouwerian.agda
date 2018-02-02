@@ -21,6 +21,6 @@ data 𝔅 (Y Z : Set) : Set where
 
 
 -- A dialogue may be run against a choice sequence.
-_$ₙ_ : {Y Z : Set} → 𝔅 Y Z → (Nat → Y) → Z
-(η x) $ₙ α = x
-ϝ 𝓭[_] $ₙ α = 𝓭[ α 0 ] $ₙ (α ∘ suc)
+_⋄ₙ_ : {Y Z : Set} → 𝔅 Y Z → (Nat → Y) → Z
+(η x) ⋄ₙ α = x
+ϝ 𝓭[_] ⋄ₙ α = 𝓭[ α 0 ] ⋄ₙ (α ∘ suc)

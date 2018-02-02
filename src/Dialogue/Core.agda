@@ -28,14 +28,14 @@ instance
   Monad.bind 𝓓-monad κ (β⟨ i ⟩ 𝓭[_]) = β⟨ i ⟩ λ x → Monad.bind 𝓓-monad κ 𝓭[ x ]
 
 -- A dialogue may be run against a choice sequence.
-_$_
+_⋄_
   : {X Y Z : Set}
   → 𝔈 X Y Z
   → (X → Y)
   → Z
-(η x) $ α = x
-β⟨ i ⟩ 𝓭[_] $ α =
-  𝓭[ α i ] $ α
+(η x) ⋄ α = x
+β⟨ i ⟩ 𝓭[_] ⋄ α =
+  𝓭[ α i ] ⋄ α
 
 generic
   : {X Y : Set}
@@ -46,53 +46,53 @@ generic 𝓭 =
     β⟨ i ⟩ η_
 
 module ⊢ where
-  _$¹_
+  ⋄-extensional
     : {X Y Z : Set}
     → (𝓭 : 𝔈 X Y Z)
     → {α β : X → Y}
     → (∀ i → α i ≡ β i)
-    → 𝓭 $ α ≡ 𝓭 $ β
+    → 𝓭 ⋄ α ≡ 𝓭 ⋄ β
 
-  (η x) $¹ h =
+  ⋄-extensional (η _) _ =
     refl
 
-  _$¹_ (β⟨ i ⟩ 𝓭[_]) {α = α} {β = β} h rewrite h i =
-    𝓭[ β i ] $¹ h
+  ⋄-extensional (β⟨ i ⟩ 𝓭[_]) {α = α} {β = β} h rewrite h i =
+    ⋄-extensional 𝓭[ β i ] h
 
 
-  $-natural
+  ⋄-natural
     : {X Y Z W : Set}
     → (f : Z → W)
     → (𝓭 : 𝔈 X Y Z)
     → (α : X → Y)
-    → f (𝓭 $ α) ≡ map f 𝓭 $ α
+    → f (𝓭 ⋄ α) ≡ map f 𝓭 ⋄ α
 
-  $-natural f (η x) α =
+  ⋄-natural f (η x) α =
     refl
 
-  $-natural f (β⟨ i ⟩ 𝓭[_]) α =
-    $-natural f 𝓭[ α i ] α
+  ⋄-natural f (β⟨ i ⟩ 𝓭[_]) α =
+    ⋄-natural f 𝓭[ α i ] α
 
 
-  $-≫=
+  ⋄-commutes-with-≫=
     : {X Y Z W : Set}
     → {𝓭[_] : Z → 𝔈 X Y W}
     → (𝓮 : 𝔈 X Y Z)
     → (α : X → Y)
-    → 𝓭[ 𝓮 $ α ] $ α ≡ (𝓮 ≫= 𝓭[_]) $ α
+    → 𝓭[ 𝓮 ⋄ α ] ⋄ α ≡ (𝓮 ≫= 𝓭[_]) ⋄ α
 
-  $-≫= (η x) α =
+  ⋄-commutes-with-≫= (η x) α =
     refl
 
-  $-≫= (β⟨ i ⟩ 𝓭[_]) α =
-    $-≫= 𝓭[ α i ] α
+  ⋄-commutes-with-≫= (β⟨ i ⟩ 𝓭[_]) α =
+    ⋄-commutes-with-≫= 𝓭[ α i ] α
 
 
   generic-diagram
     : {X Y : Set}
     → (α : X → Y)
     → (𝓭 : 𝔈 X Y X)
-    → α (𝓭 $ α) ≡ generic 𝓭 $ α
+    → α (𝓭 ⋄ α) ≡ generic 𝓭 ⋄ α
 
   generic-diagram α (η x) =
     refl

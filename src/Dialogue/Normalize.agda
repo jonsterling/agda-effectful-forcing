@@ -158,40 +158,39 @@ module ⊢ where
         → (𝓭 : 𝔈 Nat Y Z)
         → (p : U ⊩ 𝓭 norm)
         → (α : 𝔖.Point Y)
-        → 𝓭 $ (U <++ α) ≡ norm↓ p $ₙ α
+        → 𝓭 ⋄ (U <++ α) ≡ norm↓ p ⋄ₙ α
       coh .(η x) (norm-η x) α = refl
-      coh _ (norm-ϝ {i = i} {𝓭[_] = 𝓭[_]} p) α =
-        coh-ϝ _ i 𝓭[_] p α
+      coh _ (norm-ϝ p) = coh-ϝ _ _ _ _ p
 
       coh-ϝ
         : {Y Z : Set}
-        → {U : _} (V : _)
+        → (U : _) (V : _)
         → (i : Nat)
         → (𝓭[_] : Y → 𝔈 Nat Y Z)
         → (p : U ⊩β⟨ i ⟩ 𝓭[_] norm⊣ V)
         → (α : 𝔖.Point Y)
-        → 𝓭[ (V <++ α) i ] $ (U <++ α) ≡ norm↓-ϝ p $ₙ α
+        → 𝓭[ (V <++ α) i ] ⋄ (U <++ α) ≡ norm↓-ϝ p ⋄ₙ α
 
-      coh-ϝ {U = U} (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
-        coh {U = U} 𝓭[ x ] p α
+      coh-ϝ U (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
+        coh 𝓭[ x ] p α
 
-      coh-ϝ (x ∷ V) (suc i) 𝓭[_] (norm-ϝ-cons-su p) α =
-        coh-ϝ V i 𝓭[_] p α
+      coh-ϝ U (x ∷ V) (suc i) 𝓭[_] (norm-ϝ-cons-su p) α =
+        coh-ϝ U V i 𝓭[_] p α
 
-      coh-ϝ {U = U} .[] .0 𝓭[_] (norm-ϝ-nil-ze p[_]) α =
+      coh-ϝ U .[] .0 𝓭[_] (norm-ϝ-nil-ze p[_]) α =
         coh 𝓭[ α 0 ] p[ α 0 ] (α ∘ suc)
-          ≡.▪ 𝓭[ α 0 ] Core.⊢.$¹ (prepend-snoc-id U α)
+          ≡.▪ Core.⊢.⋄-extensional 𝓭[ α 0 ] (prepend-snoc-id U α)
 
-      coh-ϝ {U = U} .[] (suc i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
-        coh-ϝ _ i 𝓭[_] p[ α 0 ] (α ∘ suc)
-          ≡.▪ 𝓭[ α (suc i) ] Core.⊢.$¹ (prepend-snoc-id U α)
+      coh-ϝ U .[] (suc i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
+        coh-ϝ _ _ i 𝓭[_] p[ α 0 ] (α ∘ suc)
+          ≡.▪ Core.⊢.⋄-extensional 𝓭[ α (suc i) ] (prepend-snoc-id U α)
 
 
   coh
     : {Y Z : Set}
     → (𝓭 : 𝔈 Nat Y Z)
     → (α : 𝔖.Point Y)
-    → 𝓭 $ α ≡ norm 𝓭 $ₙ α
+    → 𝓭 ⋄ α ≡ norm 𝓭 ⋄ₙ α
   coh 𝓭 =
     Coh.coh 𝓭
       (norm↑ [] 𝓭)
