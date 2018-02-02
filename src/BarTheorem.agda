@@ -13,10 +13,6 @@ open 𝓓 hiding (module ⊢)
 
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
-  ζ[_] : ∀ {U} x → U ◂ 𝔅 → U ⌢ x ◂ 𝔅
-  ζ[ x ] (η y) = η 𝔅-mono y
-  ζ[ x ] (ϝ 𝓭[_]) = 𝓭[ x ]
-
   -- The content of Brouwer's Bar Theorem is that if we have a functional that
   -- will compute for any point α the length of the first approximation U ≺ α
   -- that is in the species φ, then we can well-order this insight into a
@@ -83,9 +79,9 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       relabel U (η x) =
         𝔅⊑𝔄 U x
 
-      relabel U (ϝ 𝓭[_]) =
+      relabel U (ϝ 𝓭) =
         𝔄-hered λ x →
-          relabel (U ⌢ x) 𝓭[ x ]
+          relabel (U ⌢ x) (𝓭 x)
 
 
       induction

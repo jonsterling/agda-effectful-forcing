@@ -20,30 +20,30 @@ mutual
       → U ⊩ η x norm
 
     norm-ϝ
-      : ∀ {i 𝓭[_]}
-      → U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ U
-      → U ⊩ ?⟨ i ⟩ 𝓭[_] norm
+      : ∀ {i 𝓭}
+      → U ⊩?⟨ i ⟩ 𝓭 norm⊣ U
+      → U ⊩ ?⟨ i ⟩ 𝓭 norm
 
   data _⊩?⟨_⟩_norm⊣_ {Y Z : Set} (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
     norm-ϝ-cons-ze
-      : ∀ {V x 𝓭[_]}
-      → U ⊩ 𝓭[ x ] norm
-      → U ⊩?⟨ 0 ⟩ 𝓭[_] norm⊣ (x ∷ V)
+      : ∀ {V x 𝓭}
+      → U ⊩ 𝓭 x norm
+      → U ⊩?⟨ 0 ⟩ 𝓭 norm⊣ (x ∷ V)
 
     norm-ϝ-cons-su
-      : ∀ {V x i 𝓭[_]}
-      → U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ V
-      → U ⊩?⟨ suc i ⟩ 𝓭[_] norm⊣ (x ∷ V)
+      : ∀ {V x i 𝓭}
+      → U ⊩?⟨ i ⟩ 𝓭 norm⊣ V
+      → U ⊩?⟨ suc i ⟩ 𝓭 norm⊣ (x ∷ V)
 
     norm-ϝ-nil-ze
-      : ∀ {𝓭[_]}
-      → (∀ x → (U ⌢ x) ⊩ 𝓭[ x ] norm)
-      → U ⊩?⟨ 0 ⟩ 𝓭[_] norm⊣ []
+      : ∀ {𝓭}
+      → (∀ x → (U ⌢ x) ⊩ 𝓭 x norm)
+      → U ⊩?⟨ 0 ⟩ 𝓭 norm⊣ []
 
     norm-ϝ-nil-su
-      : ∀ {i 𝓭[_]}
-      → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ 𝓭[_] norm⊣ [])
-      → U ⊩?⟨ suc i ⟩ 𝓭[_] norm⊣ []
+      : ∀ {i 𝓭}
+      → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ 𝓭 norm⊣ [])
+      → U ⊩?⟨ suc i ⟩ 𝓭 norm⊣ []
 
 -- Next, we show that the proof-theoretic characterization of
 -- tree normalizability was sound, i.e. that whenever the judgment
@@ -65,9 +65,9 @@ mutual
   norm↓-ϝ
     : {Y Z : Set}
     → {U V : _}
-    → {𝓭[_] : Y → 𝔈 Nat Y Z}
+    → {𝓭 : Y → 𝔈 Nat Y Z}
     → {i : Nat}
-    → U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ V
+    → U ⊩?⟨ i ⟩ 𝓭 norm⊣ V
     → 𝔅 Y Z
 
   norm↓-ϝ (norm-ϝ-cons-ze p) =
@@ -94,8 +94,8 @@ mutual
   norm↑ U (η x) =
     norm-η x
 
-  norm↑ U (?⟨ i ⟩ 𝓭[_]) =
-    norm-ϝ (norm↑-ϝ _ _ i 𝓭[_])
+  norm↑ U (?⟨ i ⟩ 𝓭) =
+    norm-ϝ (norm↑-ϝ _ _ i 𝓭)
 
   norm↑-ϝ
     : {Y Z : Set}
@@ -164,24 +164,24 @@ module ⊢ where
         : {Y Z : Set}
         → (U : _) (V : _)
         → (i : Nat)
-        → (𝓭[_] : Y → 𝔈 Nat Y Z)
-        → (p : U ⊩?⟨ i ⟩ 𝓭[_] norm⊣ V)
+        → (𝓭 : Y → 𝔈 Nat Y Z)
+        → (p : U ⊩?⟨ i ⟩ 𝓭 norm⊣ V)
         → (α : 𝔖.Point Y)
-        → 𝔈[ 𝓭[ (V <++ α) i ] ⋄ (U <++ α) ] ≡ 𝔅[ norm↓-ϝ p ⋄ α ]
+        → 𝔈[ 𝓭 ((V <++ α) i) ⋄ (U <++ α) ] ≡ 𝔅[ norm↓-ϝ p ⋄ α ]
 
-      coh-ϝ U (x ∷ V) .0 𝓭[_] (norm-ϝ-cons-ze p) α =
-        coh 𝓭[ x ] p α
+      coh-ϝ U (x ∷ V) .0 𝓭 (norm-ϝ-cons-ze p) α =
+        coh (𝓭 x) p α
 
-      coh-ϝ U (x ∷ V) (suc i) 𝓭[_] (norm-ϝ-cons-su p) α =
-        coh-ϝ U V i 𝓭[_] p α
+      coh-ϝ U (x ∷ V) (suc i) 𝓭 (norm-ϝ-cons-su p) α =
+        coh-ϝ U V i 𝓭 p α
 
-      coh-ϝ U .[] .0 𝓭[_] (norm-ϝ-nil-ze p[_]) α =
-        coh 𝓭[ α 0 ] p[ α 0 ] (α ∘ suc)
-          ≡.▪ Core.⊢.⋄-extensional 𝓭[ α 0 ] (prepend-snoc-id U α)
+      coh-ϝ U .[] .0 𝓭 (norm-ϝ-nil-ze p) α =
+        coh (𝓭 _) (p _) (α ∘ suc)
+          ≡.▪ Core.⊢.⋄-extensional (𝓭 _) (prepend-snoc-id U α)
 
-      coh-ϝ U .[] (suc i) 𝓭[_] (norm-ϝ-nil-su p[_]) α =
-        coh-ϝ _ _ i 𝓭[_] p[ α 0 ] (α ∘ suc)
-          ≡.▪ Core.⊢.⋄-extensional 𝓭[ α (suc i) ] (prepend-snoc-id U α)
+      coh-ϝ U .[] (suc i) 𝓭 (norm-ϝ-nil-su p) α =
+        coh-ϝ _ _ i 𝓭 (p _) (α ∘ suc)
+          ≡.▪ Core.⊢.⋄-extensional (𝓭 _) (prepend-snoc-id U α)
 
 
   coh
