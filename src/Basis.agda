@@ -63,8 +63,8 @@ record Monad ..{ℓ₀ ℓ₁} (M : Set ℓ₀ → Set ℓ₁) ⦃ fun : Functor
   applicative : Applicative M ⦃ fun = fun ⦄
   Applicative.pure applicative =
     return_
-  Applicative.apply applicative mf mx =
-    bind (λ f → bind (λ x → return f x) mx) mf
+  Applicative.apply applicative {A} {B} mf mx =
+    bind {A → B} (λ f → bind (λ x → return f x) mx) mf
 
 
 open Monad ⦃ … ⦄ public
