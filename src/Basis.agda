@@ -15,19 +15,6 @@ record Functor ..{ℓ₀ ℓ₁} (F : Set ℓ₀ → Set ℓ₁) : Set (lsuc ℓ
 
 open Functor ⦃ … ⦄ public
 
-
-record Applicative ..{ℓ₀ ℓ₁} (T : Set ℓ₀ → Set ℓ₁) ⦃ fun : Functor T ⦄ : Set (lsuc ℓ₀ ⊔ ℓ₁) where
-  infixl 1 _⊛_
-  field
-    pure_ : ∀ {A} → A → T A
-    apply : ∀ {A B} → T (A → B) → (T A → T B)
-
-  _⊛_ : ∀ {A B} → T (A → B) → (T A → T B)
-  _⊛_ = apply
-
-open Applicative ⦃ … ⦄ public
-
-
 record Monad ..{ℓ₀ ℓ₁} (M : Set ℓ₀ → Set ℓ₁) ⦃ fun : Functor M ⦄ : Set (lsuc ℓ₀ ⊔ ℓ₁) where
   infixr 1 bind
   infixr 1 _=≪_
@@ -60,13 +47,6 @@ record Monad ..{ℓ₀ ℓ₁} (M : Set ℓ₀ → Set ℓ₁) ⦃ fun : Functor
 
   syntax bind (λ x → v) m = x ← m ▸ v
 
-  applicative : Applicative M ⦃ fun = fun ⦄
-  Applicative.pure applicative =
-    return_
-  Applicative.apply applicative {A} {B} mf mx =
-    bind {A → B} (λ f → bind (λ x → return f x) mx) mf
-
-
 open Monad ⦃ … ⦄ public
 
 _∘_
@@ -82,7 +62,7 @@ infixr 1 _∘_
 
 module ≡ where
   cmp
-    : ∀ ..{ℓ}
+    : ∀ {ℓ}
     → {A : Set ℓ}
     → {a b c : A}
     → b ≡ c
@@ -91,7 +71,7 @@ module ≡ where
   cmp refl refl = refl
 
   seq
-    : ∀ ..{ℓ}
+    : ∀ {ℓ}
     → {A : Set ℓ}
     → {a b c : A}
     → a ≡ b
@@ -100,7 +80,7 @@ module ≡ where
   seq refl refl = refl
 
   inv
-    : ∀ ..{ℓ} {A : Set ℓ} {a b : A}
+    : ∀ {ℓ} {A : Set ℓ} {a b : A}
     → a ≡ b
     → b ≡ a
   inv refl = refl
@@ -114,7 +94,7 @@ module ≡ where
 
 
   ap¹
-    : ∀ ..{ℓ₀ ℓ₁}
+    : ∀ {ℓ₀ ℓ₁}
     → {A : Set ℓ₀} {B : Set ℓ₁}
     → ∀ {a₀ a₁}
     → (F : A → B)
@@ -123,7 +103,7 @@ module ≡ where
   ap¹ F refl = refl
 
   coe*
-    : ∀ ..{ℓ₀ ℓ₁}
+    : ∀ {ℓ₀ ℓ₁}
     → ∀ {A : Set ℓ₀} {a b}
     → (Ψ : A → Set ℓ₁)
     → (ρ : a ≡ b)

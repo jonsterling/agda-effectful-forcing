@@ -4,6 +4,7 @@ open import Basis
 open import Spread.Baire
 open import Securability
 open import SystemT.Syntax
+import SystemT.Context as Ctx
 
 import Dialogue as 𝓓
 import SystemT.Semantics as Sem
@@ -30,11 +31,16 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
         → F ⊩ [] ◃ᵀ 𝔅
         → 𝓓.norm (𝓑.⟦ F ⟧₀ generic) ⊩ [] ◃ 𝔅
-      lemma F p α
-        rewrite
-            𝓓.⊢.coh (𝓑.⟦ F ⟧₀ generic) α ≡.⁻¹
-          | Sem.⊢.soundness α F {_} {𝓑.𝒢.⋄} (λ ()) α generic (λ _ 𝓮 f → 𝓓.⊢.generic-diagram α 𝓮 ≡.▪ ≡.ap¹ α f) ≡.⁻¹
-          = p α
+      lemma F p α =
+        ≡.coe*
+         (λ x → 𝔅 (α [ x + 0 ]))
+         (≡.seq
+          (Sem.⊢.soundness α F {T.𝒢.⋄} {𝓑.𝒢.⋄} (λ ()) α generic λ G 𝓮 f →
+           ≡.seq
+            (≡.ap¹ α f)
+            (𝓓.⊢.generic-diagram α 𝓮))
+          (𝓓.⊢.coh (𝓑.⟦ F ⟧₀ generic) α))
+         (p α)
 
       0⋯ : Point
       0⋯ _ = 0
