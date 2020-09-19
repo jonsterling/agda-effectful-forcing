@@ -10,6 +10,12 @@ import Dialogue as 𝓓
 
 open import SystemT.Syntax
 
+postulate funext : {A B : Set} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
+postulate depfunext : {A : Set} {B : A → Set} {f g : (x : A) → B x} (h : ∀ x → f x ≡ g x) → f ≡ g
+
+
+
+
 private
   id : {ℓ : _} {A : Set ℓ} → A → A
   id x = x
@@ -77,7 +83,7 @@ module 𝓑 where
   F : Set → Alg
   Alg.car (F A) = 𝓓.𝔈 Nat Nat A
   Alg.alg (F A) 𝔞 = 𝔞 ≫= λ x → x
-  Alg.law (F A) 𝔞 = {!!}
+  Alg.law (F A) 𝔞 = refl
 
   U : Alg → Set
   U = Alg.car
@@ -85,7 +91,7 @@ module 𝓑 where
   Alg[_⇒_] : Set → Alg → Alg
   Alg.car Alg[ A ⇒ B ] = A → Alg.car B
   Alg.alg Alg[ A ⇒ B ] 𝔣 a = Alg.alg B (map (λ f → f a) 𝔣)
-  Alg.law Alg[ A ⇒ B ] = {!!}
+  Alg.law Alg[ A ⇒ B ] 𝔣 = funext λ x → Alg.law B (𝔣 x)
 
   ⟪_⟫ : Type → Alg
   ⟪ ` nat ⟫ = F Nat
@@ -94,7 +100,7 @@ module 𝓑 where
   cx⟪_⟫ : {n : Nat} → Ctx n → Alg
   Alg.car cx⟪ Γ ⟫ = (i : Fin _) → Alg.car ⟪ Γ Ctx.[ i ] ⟫
   Alg.alg cx⟪ Γ ⟫ 𝔤 i = Alg.alg ⟪ Γ Ctx.[ i ] ⟫ (map (λ g → g i) 𝔤)
-  Alg.law cx⟪ Γ ⟫ = {!!}
+  Alg.law cx⟪ Γ ⟫ 𝔤 = depfunext λ i → Alg.law ⟪ Γ Ctx.[ i ] ⟫ (𝔤 i)
 
   _⟪,⟫_ : ∀ {n} {Γ : Ctx n} {σ : Type} → U cx⟪ Γ ⟫ → U ⟪ σ ⟫ → U cx⟪ Γ Ctx., σ ⟫
   (ρ ⟪,⟫ x) zero = x
@@ -162,24 +168,39 @@ module ⊢ where
     (i : Fin _)
       → 𝓡[ Γ Ctx.[ i ] ] α (ρ₀ i) (ρ₁ i)
 
+  foo : ∀ α 𝓷 (𝓭 : Nat → 𝔈 Nat Nat Nat)→
+      𝔈[ 𝓭 𝔈[ 𝓷 ⋄ α ] ⋄ α ] ≡
+      𝔈[ Monad.bind 𝔈-monad (λ x → x) (𝓷 ≫= λ x → η 𝓭 x) ⋄ α ]
+  foo α (η x) 𝓭 = refl
+  foo α (?⟨ i ⟩ 𝓷) 𝓭 =
+    foo α (𝓷 (α i)) 𝓭
+
+  xxxx : ∀ σ τ (F : Nat → T.𝒱.⟦ σ ⇒ τ ⟧)
+         (𝓭 : Nat → 𝓑.U 𝓑.⟪ σ ⇒ τ ⟫)
+         (G : Nat) (𝓷 : 𝔈 Nat Nat Nat)
+         (𝓮 : 𝓑.U 𝓑.⟪ σ ⟫) →
+       (𝓷 ≫= (λ x → η 𝓭 x 𝓮)) ≡
+       map (λ f → f 𝓮) (𝓷 ≫= (λ x → η 𝓭 x))
+  xxxx σ τ F 𝓭 G (η x) 𝓮 = refl
+  xxxx σ τ F 𝓭 G (?⟨ i ⟩ 𝓷) 𝓮 = ≡.ap¹ ?⟨ i ⟩ (funext (λ x → xxxx σ τ F 𝓭 G (𝓷 x) 𝓮))
+
+
 
   𝓡[_]-Ext-lemma
     : (σ : Type)
     → {α : Point}
-    → {F : T.𝒱.⟦ nat ⟧₀ → T.𝒱.⟦ σ ⟧}
-    → {𝓭 : 𝓑.U 𝓑.⟪ ` nat ⟫ → 𝓑.U 𝓑.⟪ σ ⟫}
-    → (∀ k → 𝓡[ σ ] α (F k) (𝓭 (η k)))
+    → {F : Nat → T.𝒱.⟦ σ ⟧}
+    → {𝓭 : Nat → 𝓑.U 𝓑.⟪ σ ⟫}
+    → (∀ k → 𝓡[ σ ] α (F k) (𝓭 k))
     → {G : T.𝒱.⟦ nat ⟧₀}
     → (𝓷 : 𝓑.U 𝓑.⟪ ` nat ⟫)
     → 𝓡[ ` nat ] α G 𝓷
-    → 𝓡[ σ ] α (F G) (𝓭 𝓷)
-  𝓡[ ` nat ]-Ext-lemma {α} {F} {𝓭} F∼G {G} 𝓷 G∼𝓷 =
-    ≡.seq (F∼G G) {!!}
---    ≡.seq (F∼G G) {!!} -- (≡.ap¹ (λ x → 𝔈[ x ⋄ α ]) {!!})
-  𝓡[ σ ⇒ τ ]-Ext-lemma {α} {F} {𝓭} F∼G {G} 𝓷 G∼𝓷 H 𝓮 H∼𝓮 = 𝓡[ τ ]-Ext-lemma {α} {λ x → F x H} {λ x → 𝓭 x 𝓮} (λ k → F∼G k H 𝓮 H∼𝓮) 𝓷 G∼𝓷
-
-
-
+    → 𝓡[ σ ] α (F G) (𝓑.Alg.alg 𝓑.⟪ σ ⟫ (𝓷 ≫= λ x → η (𝓭 x))) -- (𝓷 ≫= 𝓭)
+  𝓡[ ` nat ]-Ext-lemma {α} {F} {𝓭} F∼G {G} 𝓷 G∼𝓷 rewrite (F∼G G) | G∼𝓷 =
+    foo α 𝓷 𝓭
+  𝓡[ σ ⇒ τ ]-Ext-lemma {α} {F} {𝓭} F∼G {G} 𝓷 G∼𝓷 H 𝓮 H∼𝓮 =
+    let ih = 𝓡[ τ ]-Ext-lemma {α} {λ x → F x H} {λ x → 𝓭 x 𝓮} (λ k → F∼G k H 𝓮 H∼𝓮) 𝓷 G∼𝓷 in
+    ≡.coe* (λ ■ → 𝓡[ τ ] α (F G H) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ ■)) (xxxx σ τ F 𝓭 G 𝓷 𝓮) ih
 
 
   -- Using our family of logical relations, we prove that the non-standard
@@ -202,8 +223,11 @@ module ⊢ where
     ⊢.⋄-natural suc (𝓑.tm⟪ t ⟫ _) _
 
   soundness α (rec[ τ ] s z n) {ρ₀} {ρ₁} ρ₀∼ρ₁ =
-      𝓡[ τ ]-Ext-lemma {α} {R} {𝓻} R∼𝓻 ⟪n⟫ (soundness α n ρ₀∼ρ₁)
---    goal
+    let xxx = 𝓡[ τ ]-Ext-lemma {α} {R} {𝓻} R∼𝓻 {T.⟦ n ⟧ (λ i → ρ₀ i)} ⟪n⟫ (soundness α n ρ₀∼ρ₁) in
+    ≡.coe*
+     (λ ■ → 𝓡[ τ ] α (R ⟦n⟧) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ (Monad.bind 𝔈-monad ■ ⟪n⟫)))
+     (funext welp)
+     xxx
 
     where
 
@@ -225,118 +249,38 @@ module ⊢ where
       R : Nat → T.𝒱.⟦ τ ⟧
       R k = rec S (T.⟦ z ⟧ ρ₀) k
 
-      𝓻 : 𝓑.U 𝓑.⟪ ` nat ⟫ → 𝓑.U 𝓑.⟪ τ ⟫
-      𝓻 k = 𝓑.Alg.alg 𝓑.⟪ τ ⟫ (k ≫= rec (λ x₁ x₂ → η (𝓼 (η x₁) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ x₂))) (η (𝓑.tm⟪ z ⟫ ρ₁))) -- rec (𝓼 ∘ η_) ?) --(𝓑.⟦ z ⟧ ρ₁))
+      𝓻 : Nat → 𝓑.U 𝓑.⟪ τ ⟫
+      𝓻 = rec (λ x ih → 𝓼 (η x) ih) (𝓑.tm⟪ z ⟫ ρ₁)
 
-      R∼𝓻 : (k : Nat) → 𝓡[ τ ] _ (R k) (𝓻 (η k))
+      R∼𝓻 : (k : Nat) → 𝓡[ τ ] _ (R k) (𝓻 k)
       R∼𝓻 zero rewrite 𝓑.Alg.law 𝓑.⟪ τ ⟫ (𝓑.tm⟪ z ⟫ ρ₁) = soundness _ z ρ₀∼ρ₁
-      R∼𝓻 (suc k) = {!S∼𝓼!} --  S∼𝓼 k (η k) refl (R k) (rec (𝓼 ∘ η_) (𝓑.⟦ z ⟧ _) k) (R∼𝓻 k)
+      R∼𝓻 (suc k) = S∼𝓼 k (η k) refl (R k) (𝓻 k) (R∼𝓻 k)
 
-{-
-
-
-      foo : 𝓡[ τ ] _ (R (T.⟦ n ⟧ ρ₀)) (𝓻 (T.⟦ n ⟧ ρ₀))
-      foo = R∼𝓻 (T.⟦ n ⟧ ρ₀)
-      bar : 𝓡[ ` nat ] α ⟦n⟧ ⟪n⟫
-      bar = soundness _ n ρ₀∼ρ₁
-
-      goal4 : (m : _) → 𝓻 m ≡ 𝓑.Alg.alg 𝓑.⟪ τ ⟫ (rec (λ x ih → η (𝓼 (η x) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ ih))) (η (𝓑.tm⟪ z ⟫ ρ₁)) m)
-      goal4 zero rewrite 𝓑.Alg.law 𝓑.⟪ τ ⟫ (𝓑.tm⟪ z ⟫ ρ₁) = refl
-      goal4 (suc m) rewrite 𝓑.Alg.law 𝓑.⟪ τ ⟫ (𝓼 (η m) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ ((rec (λ x ih → η (𝓼 (η x) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ ih))) (η (𝓑.tm⟪ z ⟫ ρ₁)) m)))) =
-        ≡.ap¹ (λ ■ → 𝓑.tm⟪ s ⟫ (ρ₁ 𝓑.⟪,⟫ η m 𝓑.⟪,⟫ ■)) (goal4 m)
-
-      goal5 : {Z : _} (j : _) (𝔪 : Nat → 𝔈 Nat Nat Nat) (f : Nat → 𝔈 Nat Nat Z) → 𝔈[ ?⟨ j ⟩ 𝔪 ⋄ α ] ≡ {!!} → (𝔪 (α j) ≫= f) ≡ (?⟨ j ⟩ 𝔪 ≫= f)
-      goal5 = {!!}
-
-      goal3 : (𝔪 : _) → 𝓻 𝔈[ 𝔪 ⋄ α ] ≡ 𝓑.Alg.alg 𝓑.⟪ τ ⟫ (𝔪 ≫= rec (λ x ih → η (𝓼 (η x) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ ih))) (η (𝓑.tm⟪ z ⟫ ρ₁)))
-      goal3 (η x) = goal4 x
-      goal3 (?⟨ i ⟩ 𝔪) =
-
-        ≡.seq
-          (goal3 (𝔪 (α i)))
-          {!!}
---          (≡.ap¹
---           (𝓑.Alg.alg 𝓑.⟪ τ ⟫)
---           {!!})
-
-        where
-          dream : 𝔪 (α i) ≡ ?⟨ i ⟩ 𝔪
-          dream = {!!}
-
-{-
-           (≡.seq
-            (goal5 i 𝔪 (rec (λ x ih → η 𝓼 (η x) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ ih)) (η 𝓑.tm⟪ z ⟫ ρ₁)))
-            {!!}))
--}
-
-      goal2 : 𝓻 ⟦n⟧ ≡ 𝓑.Alg.alg 𝓑.⟪ τ ⟫ (⟪n⟫ ≫= rec (λ x ih → η (𝓼 (η x) (𝓑.Alg.alg 𝓑.⟪ τ ⟫ ih))) (η (𝓑.tm⟪ z ⟫ ρ₁)))
-      goal2 rewrite soundness _ n ρ₀∼ρ₁ = goal3 ⟪n⟫
-
-
-      goal : 𝓡[ τ ] α (R ⟦n⟧) (𝓑.⟦ rec[ τ ] s z n ⟧ ρ₁)
-      goal =
-        ≡.coe*
-         (λ ■ → 𝓡[ τ ] α (R ⟦n⟧) ■)
-         goal2
-         (R∼𝓻 ⟦n⟧)
--}
+      welp : (x : Nat) →  _≡_ {_} {𝔈 Nat Nat _} (𝓓.η 𝓻 x) (rec (λ x ih → 𝓓.η 𝓑.tm⟪ s ⟫ (ρ₁ 𝓑.⟪,⟫ (𝓓.η x) 𝓑.⟪,⟫ 𝓑.Alg.alg 𝓑.⟪ τ ⟫ ih)) (𝓓.η 𝓑.tm⟪ z ⟫ ρ₁) x)
+      welp zero = refl
+      welp (suc x) =
+        ≡.ap¹
+         (λ ■ → η (𝓑.tm⟪ s ⟫ (ρ₁ 𝓑.⟪,⟫ η x 𝓑.⟪,⟫ ■)))
+         (≡.inv
+          (≡.seq
+           (≡.ap¹ (𝓑.Alg.alg 𝓑.⟪ τ ⟫) (≡.inv (welp x)))
+           (𝓑.Alg.law 𝓑.⟪ τ ⟫ (𝓻 x))))
 
 
 
-  soundness _ (ν i q) ρ₀∼ρ₁ = {!!}
-  soundness _ (ƛ t) ρ₀∼ρ₁ = {!!}
-  soundness _ (t · t₁) ρ₀∼ρ₁ = {!!}
+  soundness _ (ν i q) ρ₀∼ρ₁ rewrite q =
+    ρ₀∼ρ₁ i
 
-{-
+  soundness _ (ƛ t) ρ₀∼ρ₁ G 𝓮 x =
+    soundness _ t λ { zero → x ; (suc i) → ρ₀∼ρ₁ i}
 
-  soundness _ (succ m) ρ₀~ρ₁ rewrite soundness _ m  ρ₀~ρ₁ =
-    ⊢.⋄-natural suc (𝓑.⟦ m ⟧ _) _
+  soundness _ (t · u) ρ₀∼ρ₁ =
+    soundness _ t ρ₀∼ρ₁ _ _ (soundness _ u ρ₀∼ρ₁)
 
-  soundness _ (rec[ σ ] s z n) ρ₀∼ρ₁ =
-    𝓡[ σ ]-Ext-lemma R∼𝓻 _ (soundness _ n ρ₀∼ρ₁)
-
-    where
-      S = λ x y → T.⟦ s ⟧ (_ T.𝒢., x T.𝒢., y)
-      𝓼 = λ x y → 𝓑.⟦ s ⟧ (_ 𝓑.𝒢., x 𝓑.𝒢., y)
-
-      S∼𝓼 : 𝓡[ ` nat ⇒ σ ⇒ σ ] _ S 𝓼
-      S∼𝓼 G 𝓮 G∼𝓮 G′ 𝓮′ G′∼𝓮′ =
-        soundness _ s λ {
-          zero → G′∼𝓮′ ;
-          (suc zero) → G∼𝓮 ;
-          (suc (suc i)) → ρ₀∼ρ₁ i
-        }
-
-      R : Nat → T.𝒱.⟦ σ ⟧
-      R k = rec S (T.⟦ z ⟧ _) k
-
-      𝓻 : Nat → 𝓑.𝒱.⟦ σ ⟧
-      𝓻 k = rec (𝓼 ∘ η_) (𝓑.⟦ z ⟧ _) k
-
-      R∼𝓻 : (k : Nat) → 𝓡[ σ ] _ (R k) (𝓻 k)
-      R∼𝓻 zero = soundness _ z ρ₀∼ρ₁
-      R∼𝓻 (suc k) = S∼𝓼 k (η k) refl (R k) (rec (𝓼 ∘ η_) (𝓑.⟦ z ⟧ _) k) (R∼𝓻 k)
-
-  soundness _ (ν i p) ρ₀~ρ₁ rewrite p =
-    ρ₀~ρ₁ i
-
-  soundness _ (ƛ M) ρ₀~ρ₁ G 𝓮 G~𝓮 =
-    soundness _ M λ
-      { zero → G~𝓮
-      ; (suc i) → ρ₀~ρ₁ i
-      }
-
-  soundness _ (M · N) ρ₀~ρ₁ =
-    soundness _ M ρ₀~ρ₁
-      (T.⟦ N ⟧ _)
-      (𝓑.⟦ N ⟧ _)
-      (soundness _ N ρ₀~ρ₁)
 
   soundness₀
-    : {𝔟 : _}
-    → (α : Point)
-    → (M : Ctx.⋄ ⊢ᵀ ` 𝔟)
+    : (α : Point)
+    → (M : Ctx.⋄ ⊢ᵀ ` nat)
     → T.⟦ M ⟧₀ ≡ 𝔈[ 𝓑.⟦ M ⟧₀ ⋄ α ]
   soundness₀ _ M =
     soundness _ M (λ ())
--}
