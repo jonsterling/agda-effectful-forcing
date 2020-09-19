@@ -36,12 +36,39 @@ data 𝔅 (Y Z : Set) : Set where
 instance
   𝔈-functor : {X Y : Set} → Functor (𝔈 X Y)
   Functor.map 𝔈-functor f (η x) = η (f x)
-  Functor.map 𝔈-functor f (?⟨ i ⟩ 𝓭) = ?⟨ i ⟩ λ x → map f (𝓭 x)
+  Functor.map 𝔈-functor f (?⟨ i ⟩ 𝔡) = ?⟨ i ⟩ λ x → map f (𝔡 x)
+
+  Functor.law/id 𝔈-functor (η x) = refl
+  Functor.law/id 𝔈-functor (?⟨ i ⟩ 𝔡) =
+    ≡.ap¹ ?⟨ i ⟩
+     (funext λ x →
+      Functor.law/id 𝔈-functor (𝔡 x))
+
+  Functor.law/cmp 𝔈-functor f g (η _) = refl
+  Functor.law/cmp 𝔈-functor f g (?⟨ i ⟩ 𝔡) =
+    ≡.ap¹ ?⟨ i ⟩
+      (funext λ x →
+       Functor.law/cmp 𝔈-functor f g (𝔡 x))
 
   𝔈-monad : {X Y : Set} → Monad (𝔈 X Y)
-  Monad.return_ 𝔈-monad = η_
+  Monad.ret 𝔈-monad = η_
   Monad.bind 𝔈-monad κ (η x) = κ x
-  Monad.bind 𝔈-monad κ (?⟨ i ⟩ 𝓭) = ?⟨ i ⟩ λ x → Monad.bind 𝔈-monad κ (𝓭 x)
+  Monad.bind 𝔈-monad κ (?⟨ i ⟩ 𝔡) = ?⟨ i ⟩ λ x → Monad.bind 𝔈-monad κ (𝔡 x)
+
+  Monad.law/λ 𝔈-monad a k = refl
+
+  Monad.law/ρ 𝔈-monad (η x) = refl
+  Monad.law/ρ 𝔈-monad (?⟨ i ⟩ 𝔡) =
+    ≡.ap¹ ?⟨ i ⟩
+     (funext λ x →
+      Monad.law/ρ 𝔈-monad (𝔡 x))
+
+  Monad.law/α 𝔈-monad (η x) f g = refl
+  Monad.law/α 𝔈-monad (?⟨ i ⟩ 𝔡) f g =
+    ≡.ap¹ ?⟨ i ⟩
+     (funext λ x →
+      Monad.law/α 𝔈-monad (𝔡 x) f g)
+
 
 
 -- An Escardó dialogue may be run against a choice sequence.

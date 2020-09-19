@@ -6,11 +6,8 @@ open import Basis
 import SystemT.Context as Ctx
 open Ctx hiding (⋄; _,_)
 
-data BaseType : Set where
-  nat : BaseType
-
 data Type : Set where
-  `_ : BaseType → Type
+  nat : Type
   _⇒_ : Type → Type → Type
 
 infixr 6 _⇒_
@@ -24,18 +21,18 @@ module _ where
   data _⊢ᵀ_ {n : Nat} : (Γ : Ctx n) → Type → Set where
     zero
       : {Γ : Ctx n}
-      → Γ ⊢ᵀ ` nat
+      → Γ ⊢ᵀ nat
 
     succ
       : {Γ : Ctx n}
-      → Γ ⊢ᵀ ` nat
-      → Γ ⊢ᵀ ` nat
+      → Γ ⊢ᵀ nat
+      → Γ ⊢ᵀ nat
 
     rec[_]
       : ∀ {Γ : Ctx n} σ
-      → (Γ , (` nat) , σ) ⊢ᵀ σ
+      → (Γ , nat , σ) ⊢ᵀ σ
       → Γ ⊢ᵀ σ
-      → Γ ⊢ᵀ ` nat
+      → Γ ⊢ᵀ nat
       → Γ ⊢ᵀ σ
 
     ν

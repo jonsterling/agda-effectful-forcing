@@ -9,7 +9,7 @@ import SystemT.Context as Ctx
 import Dialogue as 𝓓
 import SystemT.Semantics as Sem
 
-open Sem hiding (module ⊢)
+open Sem
 open 𝓓 hiding (module ⊢)
 
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
@@ -19,27 +19,27 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
   -- that is in the species φ, then we can well-order this insight into a
   -- mental construction that φ is a bar.
   bar-theorem
-    : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
+    : (F : ⊢ᵀ (nat ⇒ nat) ⇒ nat)
     → F ⊩ [] ◃ᵀ 𝔅
     → [] ◂ 𝔅
   bar-theorem F =
-    analyze [] (𝓓.norm (𝓑.⟦ F ⟧₀ 𝓓.generic))
+    analyze [] (𝓓.norm (tm⟪ F ⟫₀ 𝓓.generic))
       ∘ lemma F
 
     where
       lemma
-        : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
+        : (F : ⊢ᵀ (nat ⇒ nat) ⇒ nat)
         → F ⊩ [] ◃ᵀ 𝔅
-        → 𝓓.norm (𝓑.⟦ F ⟧₀ generic) ⊩ [] ◃ 𝔅
+        → 𝓓.norm (tm⟪ F ⟫₀ 𝓓.generic) ⊩ [] ◃ 𝔅
       lemma F p α =
         ≡.coe*
          (λ x → 𝔅 (α [ x + 0 ]))
          (≡.seq
-          (Sem.⊢.soundness α F {T.𝒢.⋄} {𝓑.⟪⋄⟫} (λ ()) α generic λ G 𝓮 f →
+          (Coh.soundness α F ⟦⋄⟧ ⟪⋄⟫ (λ ()) α generic λ G 𝓮 f →
            ≡.seq
             (≡.ap¹ α f)
             (𝓓.⊢.generic-diagram α 𝓮))
-          (𝓓.⊢.coh (𝓑.⟦ F ⟧₀ generic) α))
+          (𝓓.⊢.coh (tm⟪ F ⟫₀ generic) α))
          (p α)
 
       0⋯ : Point
@@ -91,7 +91,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
 
       induction
-        : (F : ⊢ᵀ (` nat ⇒ ` nat) ⇒ (` nat))
+        : (F : ⊢ᵀ (nat ⇒ nat) ⇒ nat)
         → F ⊩ [] ◃ᵀ 𝔅
         → 𝔄 []
       induction F =

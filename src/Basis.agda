@@ -8,20 +8,27 @@ open import Agda.Builtin.Nat public
 open import Agda.Builtin.Bool public
 open import Agda.Builtin.List public
 
-record Functor ..{ℓ₀ ℓ₁} (F : Set ℓ₀ → Set ℓ₁) : Set (lsuc ℓ₀ ⊔ ℓ₁) where
+
+postulate funext : {A B : Set} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
+postulate depfunext : {A : Set} {B : A → Set} {f g : (x : A) → B x} (h : ∀ x → f x ≡ g x) → f ≡ g
+
+
+record Functor {ℓ} (F : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
   no-eta-equality
   field
     map : ∀ {A B} → (A → B) → (F A → F B)
+    law/id : ∀ {A} (a : F A) → map (λ x → x) a ≡ a
+    law/cmp : ∀ {A B C} (f : A → B) (g : B → C) (a : F A) → map (λ x → g (f x)) a ≡ map g (map f a)
 
 open Functor ⦃ … ⦄ public
 
-record Monad ..{ℓ₀ ℓ₁} (M : Set ℓ₀ → Set ℓ₁) ⦃ fun : Functor M ⦄ : Set (lsuc ℓ₀ ⊔ ℓ₁) where
+record Monad {ℓ} (M : Set ℓ → Set ℓ) ⦃ fun : Functor M ⦄ : Set (lsuc ℓ) where
   infixr 1 bind
   infixr 1 _=≪_
   infixl 1 _≫=_
 
   field
-    return_
+    ret
       : ∀ {A}
       → (a : A)
       → M A
@@ -45,12 +52,19 @@ record Monad ..{ℓ₀ ℓ₁} (M : Set ℓ₀ → Set ℓ₁) ⦃ fun : Functor
     → M B
   m ≫= k = bind k m
 
-  syntax bind (λ x → v) m = x ← m ▸ v
+  join : {A : Set ℓ} → M (M A) → M A
+  join m = m ≫= λ x → x
+
+  field
+    law/λ : {A B : Set ℓ} (a : A) (k : A → M B) → (ret a ≫= k) ≡ k a
+    law/ρ : {A : Set ℓ} (m : M A) → (m ≫= ret) ≡ m
+    law/α : {A B C : Set ℓ} (m : M A) (f : A → M B) (g : B → M C) → ((m ≫= f) ≫= g) ≡ (m ≫= λ x → f x ≫= g)
+
 
 open Monad ⦃ … ⦄ public
 
 _∘_
-  : ∀ ..{ℓ₀ ℓ₁ ℓ₂}
+  : ∀ {ℓ₀ ℓ₁ ℓ₂}
   → {A : Set ℓ₀} {B : A → Set ℓ₁} {C : ∀ {a} → B a → Set ℓ₂}
   → (g : ∀ {a} → (b : B a) → C b)
   → (f : (a : A) → B a)
