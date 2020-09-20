@@ -66,7 +66,7 @@ record Alg : Set₁ where
 
 F : Set → Alg
 Alg.car (F A) = 𝔈 A
-Alg.alg (F A) 𝔞 = 𝔞 ≫= λ x → x
+Alg.alg (F A) 𝔞 = join 𝔞
 Alg.law/η (F A) 𝔞 = refl
 Alg.law/μ (F A) (𝓓.η x) = refl
 Alg.law/μ (F A) (𝓓.?⟨ i ⟩ m) =
@@ -124,7 +124,11 @@ tm⟪_⟫
   → U ⟪ τ ⟫
 tm⟪ zero ⟫ ρ = 𝓓.η zero
 tm⟪ succ x ⟫ ρ = map suc (tm⟪ x ⟫ ρ)
-tm⟪ rec[ σ ] s z n ⟫ ρ = Alg.alg ⟪ σ ⟫ (tm⟪ n ⟫ ρ ≫= rec (λ x ih → 𝓓.η (tm⟪ s ⟫ (ρ ⟪,⟫ 𝓓.η x ⟪,⟫ Alg.alg ⟪ σ ⟫ ih))) (𝓓.η (tm⟪ z ⟫ ρ)))
+tm⟪ rec[ σ ] s z n ⟫ ρ =
+  Alg.alg ⟪ σ ⟫ do
+    n ← tm⟪ n ⟫ ρ
+    rec (λ x ih → 𝓓.η (tm⟪ s ⟫ (ρ ⟪,⟫ ret x ⟪,⟫ Alg.alg ⟪ σ ⟫ ih))) (ret (tm⟪ z ⟫ ρ)) n
+
 tm⟪ ν i p ⟫ ρ rewrite p = ρ i
 tm⟪ ƛ t ⟫ ρ x = tm⟪ t ⟫ (ρ ⟪,⟫ x)
 tm⟪ t · u ⟫ ρ = tm⟪ t ⟫ ρ (tm⟪ u ⟫ ρ)
@@ -137,7 +141,7 @@ tm⟪ t ⟫₀ =
   tm⟪ t ⟫ ⟪⋄⟫
 
 open Spread.Baire
-open 𝓓 using (𝔈[_⋄_]; η_; ?⟨_⟩)
+open 𝓓 using (𝔈[_⋄_]; ?⟨_⟩)
 
 module Coh where
 
@@ -178,18 +182,18 @@ module Coh where
     → (⟦n⟧ : Nat)
     → (⟪n⟫ : 𝔈 Nat)
     → α ⊨ nat ∋ ⟦n⟧ ∼ ⟪n⟫
-    → α ⊨ σ ∋ ⟦s⟧ ⟦n⟧ ∼ Alg.alg ⟪ σ ⟫ (⟪n⟫ ≫= λ n → η ⟪s⟫ n)
+    → α ⊨ σ ∋ ⟦s⟧ ⟦n⟧ ∼ Alg.alg ⟪ σ ⟫ (⟪n⟫ >>= (ret ∘ ⟪s⟫))
 
   lift-sequence nat α ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫ ⟦n⟧ ⟪n⟫ refl rewrite ⟦s⟧∼⟪s⟫ ⟦n⟧ =
     ≡.seq
-     (𝓓.⊢.⋄-commutes-with-≫= ⟪n⟫ α)
-     (≡.ap¹ (λ ■ → 𝔈[ ■ ⋄ α ])
+     (𝓓.⊢.⋄-commutes-with-bind ⟪n⟫ α)
+     (≡.ap¹ 𝔈[_⋄ α ]
       (≡.inv
        (law/α ⟪n⟫ _ _)))
 
   lift-sequence (σ ⇒ τ) α ⟦f⟧ ⟪f⟫ ⟦f⟧∼⟪f⟫ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫ =
     ≡.coe*
-     (λ ■ → α ⊨ τ ∋ ⟦f⟧ ⟦n⟧ ⟦s⟧ ∼ Alg.alg ⟪ τ ⟫ ■)
+     (α ⊨ τ ∋ ⟦f⟧ ⟦n⟧ ⟦s⟧ ∼_ ∘ Alg.alg ⟪ τ ⟫)
      (≡.inv
       (law/α ⟪n⟫ _ _))
      (lift-sequence _ _ _ _
@@ -219,9 +223,9 @@ module Coh where
   soundness α (rec[ σ ] s z n) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
 
     ≡.coe*
-     (λ ■ → α ⊨ σ ∋ ⟦rec⟧ ⟦n⟧ ∼ (Alg.alg ⟪ σ ⟫ (Monad.bind 𝓓.𝔈-monad ■ ⟪n⟫)))
+     (λ ■ → α ⊨ σ ∋ ⟦rec⟧ ⟦n⟧ ∼ Alg.alg ⟪ σ ⟫ (bind ■ ⟪n⟫))
      (funext aux)
-     (lift-sequence σ α ⟦rec⟧ ⟪rec⟫ ⟦rec⟧∼⟪rec⟫ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫)
+     (lift-sequence _ _ ⟦rec⟧ ⟪rec⟫ ⟦rec⟧∼⟪rec⟫ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫)
 
     where
       ⟦n⟧ = tm⟦ n ⟧ ⟦ρ⟧
@@ -243,20 +247,21 @@ module Coh where
           (suc (suc i)) → ⟦ρ⟧∼⟪ρ⟫ i
 
       ⟦rec⟧ = rec ⟦s⟧ ⟦z⟧
-      ⟪rec⟫ = rec (λ x ih → ⟪s⟫ (η x) ih) ⟪z⟫
+      ⟪rec⟫ = rec (⟪s⟫ ∘ ret) ⟪z⟫
 
       ⟦rec⟧∼⟪rec⟫ : (k : Nat) → α ⊨ σ ∋ ⟦rec⟧ k ∼ ⟪rec⟫ k
       ⟦rec⟧∼⟪rec⟫ zero rewrite Alg.law/η ⟪ σ ⟫ ⟪z⟫ = ⟦z⟧∼⟪z⟫
-      ⟦rec⟧∼⟪rec⟫ (suc k) = ⟦s⟧∼⟪s⟫ k (η k) refl (⟦rec⟧ k) (⟪rec⟫ k) (⟦rec⟧∼⟪rec⟫ k)
+      ⟦rec⟧∼⟪rec⟫ (suc k) = ⟦s⟧∼⟪s⟫ k (ret k) refl (⟦rec⟧ k) (⟪rec⟫ k) (⟦rec⟧∼⟪rec⟫ k)
 
-      aux : (x : Nat) → 𝓓.η ⟪rec⟫ x ≡ rec (λ x ih → η ⟪s⟫ (η x) (Alg.alg ⟪ σ ⟫ ih)) (η ⟪z⟫) x
+      aux : (x : Nat) → ret (⟪rec⟫ x) ≡ rec (λ x → ret ∘ ⟪s⟫ (ret x) ∘ Alg.alg ⟪ σ ⟫) (ret ⟪z⟫) x
       aux zero = refl
       aux (suc x) =
         ≡.ap¹
-         (λ ■ → η ⟪s⟫ (η x) ■)
+         (ret ∘ ⟪s⟫ (ret x))
          (≡.inv
           (≡.seq
-           (≡.ap¹ (Alg.alg ⟪ σ ⟫) (≡.inv (aux x)))
+           (≡.ap¹ (Alg.alg ⟪ σ ⟫)
+            (≡.inv (aux x)))
            (Alg.law/η ⟪ σ ⟫ (⟪rec⟫ x))))
 
 
@@ -274,8 +279,9 @@ module Coh where
 
 
   soundness₀
-    : (α : Point)
-    → (n : Ctx.⋄ ⊢ᵀ nat)
-    → tm⟦ n ⟧₀ ≡ 𝔈[ tm⟪ n ⟫₀ ⋄ α ]
-  soundness₀ _ n =
-    soundness _ n _ _ (λ ())
+    : {τ : Type}
+    → (α : Point)
+    → (t : Ctx.⋄ ⊢ᵀ τ)
+    → α ⊨ τ ∋ tm⟦ t ⟧ ⟦⋄⟧ ∼ tm⟪ t ⟫ ⟪⋄⟫
+  soundness₀ α t =
+    soundness _ t ⟦⋄⟧ ⟪⋄⟫ λ ()

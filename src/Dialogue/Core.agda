@@ -37,21 +37,22 @@ instance
   𝔈-monad : {X Y : Set} → Monad (𝔈 X Y)
   Monad.ret 𝔈-monad = η_
   Monad.bind 𝔈-monad κ (η x) = κ x
-  Monad.bind 𝔈-monad κ (?⟨ i ⟩ 𝔡) = ?⟨ i ⟩ λ x → Monad.bind 𝔈-monad κ (𝔡 x)
+  Monad.bind 𝔈-monad κ (?⟨ i ⟩ m) =
+    ?⟨ i ⟩ λ x → bind κ (m x)
 
   Monad.law/λ 𝔈-monad a k = refl
 
   Monad.law/ρ 𝔈-monad (η x) = refl
-  Monad.law/ρ 𝔈-monad (?⟨ i ⟩ 𝔡) =
+  Monad.law/ρ 𝔈-monad (?⟨ i ⟩ m) =
     ≡.ap¹ ?⟨ i ⟩
      (funext λ x →
-      Monad.law/ρ 𝔈-monad (𝔡 x))
+      law/ρ (m x))
 
   Monad.law/α 𝔈-monad (η x) f g = refl
-  Monad.law/α 𝔈-monad (?⟨ i ⟩ 𝔡) f g =
+  Monad.law/α 𝔈-monad (?⟨ i ⟩ m) f g =
     ≡.ap¹ ?⟨ i ⟩
      (funext λ x →
-      Monad.law/α 𝔈-monad (𝔡 x) f g)
+      law/α (m x) f g)
 
 
 
@@ -62,76 +63,75 @@ instance
   → (X → Y)
   → Z
 𝔈[ (η x) ⋄ α ] = x
-𝔈[ ?⟨ i ⟩ 𝓭 ⋄ α ] =
-  𝔈[ 𝓭 (α i) ⋄ α ]
+𝔈[ ?⟨ i ⟩ m ⋄ α ] =
+  𝔈[ m (α i) ⋄ α ]
 
 
 -- A Brouwerian dialogue may be run against a choice sequence.
 𝔅[_⋄_] : {Y Z : Set} → 𝔅 Y Z → (Nat → Y) → Z
 𝔅[ η x ⋄ α ] = x
-𝔅[ ϝ 𝓭 ⋄ α ] = 𝔅[ 𝓭 (α 0) ⋄ (α ∘ suc) ]
+𝔅[ ϝ m ⋄ α ] = 𝔅[ m (α 0) ⋄ (α ∘ suc) ]
 
 
 generic
   : {X Y : Set}
   → 𝔈 X Y X
   → 𝔈 X Y Y
-generic 𝓭 =
-  𝓭 ≫= λ i →
-    ?⟨ i ⟩ η_
-
+generic m = do
+  i ← m
+  ?⟨ i ⟩ ret
 
 module ⊢ where
   ⋄-extensional
     : {X Y Z : Set}
-    → (𝓭 : 𝔈 X Y Z)
+    → (m : 𝔈 X Y Z)
     → {α β : X → Y}
     → (∀ i → α i ≡ β i)
-    → 𝔈[ 𝓭 ⋄ α ] ≡ 𝔈[ 𝓭 ⋄ β ]
+    → 𝔈[ m ⋄ α ] ≡ 𝔈[ m ⋄ β ]
 
   ⋄-extensional (η _) _ =
     refl
 
-  ⋄-extensional (?⟨ i ⟩ 𝓭) h rewrite h i =
-    ⋄-extensional (𝓭 _) h
+  ⋄-extensional (?⟨ i ⟩ m) h rewrite h i =
+    ⋄-extensional (m _) h
 
 
   ⋄-natural
     : {X Y Z W : Set}
     → (f : Z → W)
-    → (𝓭 : 𝔈 X Y Z)
+    → (m : 𝔈 X Y Z)
     → (α : X → Y)
-    → f 𝔈[ 𝓭 ⋄ α ] ≡ 𝔈[ map f 𝓭 ⋄ α ]
+    → f 𝔈[ m ⋄ α ] ≡ 𝔈[ map f m ⋄ α ]
 
   ⋄-natural _ (η x) _ =
     refl
 
-  ⋄-natural f (?⟨ _ ⟩ 𝓭) α =
-    ⋄-natural f (𝓭 _) α
+  ⋄-natural f (?⟨ _ ⟩ m) α =
+    ⋄-natural f (m _) α
 
 
-  ⋄-commutes-with-≫=
+  ⋄-commutes-with-bind
     : {X Y Z W : Set}
-    → {𝓭 : Z → 𝔈 X Y W}
-    → (𝓮 : 𝔈 X Y Z)
+    → {m : Z → 𝔈 X Y W}
+    → (n : 𝔈 X Y Z)
     → (α : X → Y)
-    → 𝔈[ 𝓭 𝔈[ 𝓮 ⋄ α ] ⋄ α ] ≡ 𝔈[ (𝓮 ≫= 𝓭) ⋄ α ]
+    → 𝔈[ m 𝔈[ n ⋄ α ] ⋄ α ] ≡ 𝔈[ (n >>= m) ⋄ α ]
 
-  ⋄-commutes-with-≫= (η _) _ =
+  ⋄-commutes-with-bind (η _) _ =
     refl
 
-  ⋄-commutes-with-≫= (?⟨ _ ⟩ 𝓭) α =
-    ⋄-commutes-with-≫= (𝓭 _) α
+  ⋄-commutes-with-bind (?⟨ _ ⟩ m) α =
+    ⋄-commutes-with-bind (m _) α
 
 
   generic-diagram
     : {X Y : Set}
     → (α : X → Y)
-    → (𝓭 : 𝔈 X Y X)
-    → α 𝔈[ 𝓭 ⋄ α ] ≡ 𝔈[ generic 𝓭 ⋄ α ]
+    → (m : 𝔈 X Y X)
+    → α 𝔈[ m ⋄ α ] ≡ 𝔈[ generic m ⋄ α ]
 
   generic-diagram α (η x) =
     refl
 
-  generic-diagram α (?⟨ _ ⟩ 𝓭) =
-    generic-diagram α (𝓭 _)
+  generic-diagram α (?⟨ _ ⟩ m) =
+    generic-diagram α (m _)

@@ -98,8 +98,7 @@ open Functor ⦃ … ⦄ public
 
 record Monad {ℓ} (M : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
   infixr 1 bind
-  infixr 1 _=≪_
-  infixl 1 _≫=_
+  infixl 1 _>>=_
 
   field
     ret
@@ -112,27 +111,20 @@ record Monad {ℓ} (M : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
       → (m : M A)
       → M B
 
-  _=≪_
-    : ∀ {A B}
-    → (k : A → M B)
-    → (m : M A)
-    → M B
-  _=≪_ = bind
-
-  _≫=_
+  _>>=_
     : ∀ {A B}
     → (m : M A)
     → (k : A → M B)
     → M B
-  m ≫= k = bind k m
+  m >>= k = bind k m
 
   join : {A : Set ℓ} → M (M A) → M A
-  join m = m ≫= λ x → x
+  join m = m >>= λ x → x
 
   field
-    law/λ : {A B : Set ℓ} (a : A) (k : A → M B) → (ret a ≫= k) ≡ k a
-    law/ρ : {A : Set ℓ} (m : M A) → (m ≫= ret) ≡ m
-    law/α : {A B C : Set ℓ} (m : M A) (f : A → M B) (g : B → M C) → ((m ≫= f) ≫= g) ≡ (m ≫= λ x → f x ≫= g)
+    law/λ : {A B : Set ℓ} (a : A) (k : A → M B) → (ret a >>= k) ≡ k a
+    law/ρ : {A : Set ℓ} (m : M A) → (m >>= ret) ≡ m
+    law/α : {A B C : Set ℓ} (m : M A) (f : A → M B) (g : B → M C) → ((m >>= f) >>= g) ≡ (m >>= λ x → f x >>= g)
 
 
 open Monad ⦃ … ⦄ public
