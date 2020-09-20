@@ -62,28 +62,50 @@ record Alg : Set₁ where
     car : Set
     alg : 𝔈 car → car
     law/η : ∀ x → alg (𝓓.η x) ≡ x
+    law/μ : ∀ (m : 𝔈 (𝔈 car)) → alg (map alg m) ≡ alg (join m)
 
 F : Set → Alg
 Alg.car (F A) = 𝔈 A
 Alg.alg (F A) 𝔞 = 𝔞 ≫= λ x → x
 Alg.law/η (F A) 𝔞 = refl
+Alg.law/μ (F A) (𝓓.η x) = refl
+Alg.law/μ (F A) (𝓓.?⟨ i ⟩ m) =
+  ≡.ap¹ 𝓓.?⟨ i ⟩
+   (funext λ x →
+    Alg.law/μ (F A) (m x))
 
 U : Alg → Set
 U = Alg.car
 
+Alg/Π : (A : Set) → (A → Alg) → Alg
+Alg.car (Alg/Π A B) = (x : A) → Alg.car (B x)
+Alg.alg (Alg/Π A B) m x = Alg.alg (B x) (map (λ f → f x) m)
+Alg.law/η (Alg/Π A B) f = depfunext λ x → Alg.law/η (B x) (f x)
+Alg.law/μ (Alg/Π A B) m =
+  depfunext λ x →
+  ≡.seq
+   (≡.ap¹ (Alg.alg (B x))
+    (≡.seq
+     (≡.inv (law/cmp _ _ m))
+     (law/cmp _ _ m)))
+   (≡.seq
+    (Alg.law/μ (B x) (map (map (λ f → f x)) m))
+    (≡.ap¹ (Alg.alg (B x))
+     (≡.seq
+      (law/α m _ _)
+      (≡.inv
+       (law/α m _ _)))))
+
+
 Alg[_⇒_] : Set → Alg → Alg
-Alg.car Alg[ A ⇒ B ] = A → Alg.car B
-Alg.alg Alg[ A ⇒ B ] 𝔣 a = Alg.alg B (map (λ f → f a) 𝔣)
-Alg.law/η Alg[ A ⇒ B ] 𝔣 = funext λ x → Alg.law/η B (𝔣 x)
+Alg[ A ⇒ B ] = Alg/Π A λ _ → B
 
 ⟪_⟫ : Type → Alg
 ⟪ nat ⟫ = F Nat
 ⟪ σ ⇒ τ ⟫ = Alg[ U ⟪ σ ⟫ ⇒ ⟪ τ ⟫ ]
 
 cx⟪_⟫ : {n : Nat} → Ctx n → Alg
-Alg.car cx⟪ Γ ⟫ = (i : Fin _) → Alg.car ⟪ Γ Ctx.[ i ] ⟫
-Alg.alg cx⟪ Γ ⟫ 𝔤 i = Alg.alg ⟪ Γ Ctx.[ i ] ⟫ (map (λ g → g i) 𝔤)
-Alg.law/η cx⟪ Γ ⟫ 𝔤 = depfunext λ i → Alg.law/η ⟪ Γ Ctx.[ i ] ⟫ (𝔤 i)
+cx⟪_⟫ {n} Γ = Alg/Π (Fin n) λ i → ⟪ Γ Ctx.[ i ] ⟫
 
 _⟪,⟫_ : ∀ {n} {Γ : Ctx n} {σ : Type} → U cx⟪ Γ ⟫ → U ⟪ σ ⟫ → U cx⟪ Γ Ctx., σ ⟫
 (ρ ⟪,⟫ x) zero = x

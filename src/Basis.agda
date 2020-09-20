@@ -9,69 +9,8 @@ open import Agda.Builtin.Bool public
 open import Agda.Builtin.List public
 
 
-postulate funext : {A B : Set} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
+postulate funext : ∀ {ℓ} {A B : Set ℓ} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
 postulate depfunext : {A : Set} {B : A → Set} {f g : (x : A) → B x} (h : ∀ x → f x ≡ g x) → f ≡ g
-
-
-record Functor {ℓ} (F : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
-  no-eta-equality
-  field
-    map : ∀ {A B} → (A → B) → (F A → F B)
-    law/id : ∀ {A} (a : F A) → map (λ x → x) a ≡ a
-    law/cmp : ∀ {A B C} (f : A → B) (g : B → C) (a : F A) → map (λ x → g (f x)) a ≡ map g (map f a)
-
-open Functor ⦃ … ⦄ public
-
-record Monad {ℓ} (M : Set ℓ → Set ℓ) ⦃ fun : Functor M ⦄ : Set (lsuc ℓ) where
-  infixr 1 bind
-  infixr 1 _=≪_
-  infixl 1 _≫=_
-
-  field
-    ret
-      : ∀ {A}
-      → (a : A)
-      → M A
-    bind
-      : ∀ {A B}
-      → (k : A → M B)
-      → (m : M A)
-      → M B
-
-  _=≪_
-    : ∀ {A B}
-    → (k : A → M B)
-    → (m : M A)
-    → M B
-  _=≪_ = bind
-
-  _≫=_
-    : ∀ {A B}
-    → (m : M A)
-    → (k : A → M B)
-    → M B
-  m ≫= k = bind k m
-
-  join : {A : Set ℓ} → M (M A) → M A
-  join m = m ≫= λ x → x
-
-  field
-    law/λ : {A B : Set ℓ} (a : A) (k : A → M B) → (ret a ≫= k) ≡ k a
-    law/ρ : {A : Set ℓ} (m : M A) → (m ≫= ret) ≡ m
-    law/α : {A B C : Set ℓ} (m : M A) (f : A → M B) (g : B → M C) → ((m ≫= f) ≫= g) ≡ (m ≫= λ x → f x ≫= g)
-
-
-open Monad ⦃ … ⦄ public
-
-_∘_
-  : ∀ {ℓ₀ ℓ₁ ℓ₂}
-  → {A : Set ℓ₀} {B : A → Set ℓ₁} {C : ∀ {a} → B a → Set ℓ₂}
-  → (g : ∀ {a} → (b : B a) → C b)
-  → (f : (a : A) → B a)
-  → ((a : A) → C (f a))
-(g ∘ f) x = g (f x)
-
-infixr 1 _∘_
 
 
 module ≡ where
@@ -145,3 +84,79 @@ open Fin public
   hiding (module Fin)
   using (Fin)
   using (zero; suc)
+
+
+
+record Functor {ℓ} (F : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
+  no-eta-equality
+  field
+    map : ∀ {A B} → (A → B) → (F A → F B)
+    law/id : ∀ {A} (a : F A) → map (λ x → x) a ≡ a
+    law/cmp : ∀ {A B C} (f : A → B) (g : B → C) (a : F A) → map (λ x → g (f x)) a ≡ map g (map f a)
+
+open Functor ⦃ … ⦄ public
+
+record Monad {ℓ} (M : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
+  infixr 1 bind
+  infixr 1 _=≪_
+  infixl 1 _≫=_
+
+  field
+    ret
+      : ∀ {A}
+      → (a : A)
+      → M A
+    bind
+      : ∀ {A B}
+      → (k : A → M B)
+      → (m : M A)
+      → M B
+
+  _=≪_
+    : ∀ {A B}
+    → (k : A → M B)
+    → (m : M A)
+    → M B
+  _=≪_ = bind
+
+  _≫=_
+    : ∀ {A B}
+    → (m : M A)
+    → (k : A → M B)
+    → M B
+  m ≫= k = bind k m
+
+  join : {A : Set ℓ} → M (M A) → M A
+  join m = m ≫= λ x → x
+
+  field
+    law/λ : {A B : Set ℓ} (a : A) (k : A → M B) → (ret a ≫= k) ≡ k a
+    law/ρ : {A : Set ℓ} (m : M A) → (m ≫= ret) ≡ m
+    law/α : {A B C : Set ℓ} (m : M A) (f : A → M B) (g : B → M C) → ((m ≫= f) ≫= g) ≡ (m ≫= λ x → f x ≫= g)
+
+
+open Monad ⦃ … ⦄ public
+
+_∘_
+  : ∀ {ℓ₀ ℓ₁ ℓ₂}
+  → {A : Set ℓ₀} {B : A → Set ℓ₁} {C : ∀ {a} → B a → Set ℓ₂}
+  → (g : ∀ {a} → (b : B a) → C b)
+  → (f : (a : A) → B a)
+  → ((a : A) → C (f a))
+(g ∘ f) x = g (f x)
+
+infixr 1 _∘_
+
+
+instance
+  functor-of-monad : ∀ {ℓ} {M : Set ℓ → Set ℓ} ⦃ _ : Monad M ⦄ → Functor M
+  Functor.map (functor-of-monad {ℓ} {M} ⦃ monad ⦄) f = bind (ret ∘ f)
+  Functor.law/id (functor-of-monad {ℓ} {M} ⦃ monad ⦄) = law/ρ
+  Functor.law/cmp (functor-of-monad {ℓ} {M} ⦃ monad ⦄) f g m =
+    ≡.inv
+     (≡.seq
+      (law/α m (ret ∘ f) (ret ∘ g))
+      (≡.ap¹
+       (λ ■ → bind ■ m)
+       (funext λ x →
+        law/λ (f x) (ret ∘ g))))

@@ -34,22 +34,6 @@ data 𝔅 (Y Z : Set) : Set where
 
 
 instance
-  𝔈-functor : {X Y : Set} → Functor (𝔈 X Y)
-  Functor.map 𝔈-functor f (η x) = η (f x)
-  Functor.map 𝔈-functor f (?⟨ i ⟩ 𝔡) = ?⟨ i ⟩ λ x → map f (𝔡 x)
-
-  Functor.law/id 𝔈-functor (η x) = refl
-  Functor.law/id 𝔈-functor (?⟨ i ⟩ 𝔡) =
-    ≡.ap¹ ?⟨ i ⟩
-     (funext λ x →
-      Functor.law/id 𝔈-functor (𝔡 x))
-
-  Functor.law/cmp 𝔈-functor f g (η _) = refl
-  Functor.law/cmp 𝔈-functor f g (?⟨ i ⟩ 𝔡) =
-    ≡.ap¹ ?⟨ i ⟩
-      (funext λ x →
-       Functor.law/cmp 𝔈-functor f g (𝔡 x))
-
   𝔈-monad : {X Y : Set} → Monad (𝔈 X Y)
   Monad.ret 𝔈-monad = η_
   Monad.bind 𝔈-monad κ (η x) = κ x
