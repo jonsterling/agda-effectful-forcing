@@ -20,30 +20,30 @@ mutual
       → U ⊩ η x norm
 
     norm-ϝ
-      : ∀ {i 𝓭}
-      → U ⊩?⟨ i ⟩ 𝓭 norm⊣ U
-      → U ⊩ ?⟨ i ⟩ 𝓭 norm
+      : ∀ {i m}
+      → U ⊩?⟨ i ⟩ m norm⊣ U
+      → U ⊩ ?⟨ i ⟩ m norm
 
   data _⊩?⟨_⟩_norm⊣_ {Y Z : Set} (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
     norm-ϝ-cons-ze
-      : ∀ {V x 𝓭}
-      → U ⊩ 𝓭 x norm
-      → U ⊩?⟨ 0 ⟩ 𝓭 norm⊣ (x ∷ V)
+      : ∀ {V x m}
+      → U ⊩ m x norm
+      → U ⊩?⟨ 0 ⟩ m norm⊣ (x ∷ V)
 
     norm-ϝ-cons-su
-      : ∀ {V x i 𝓭}
-      → U ⊩?⟨ i ⟩ 𝓭 norm⊣ V
-      → U ⊩?⟨ suc i ⟩ 𝓭 norm⊣ (x ∷ V)
+      : ∀ {V x i m}
+      → U ⊩?⟨ i ⟩ m norm⊣ V
+      → U ⊩?⟨ suc i ⟩ m norm⊣ (x ∷ V)
 
     norm-ϝ-nil-ze
-      : ∀ {𝓭}
-      → (∀ x → (U ⌢ x) ⊩ 𝓭 x norm)
-      → U ⊩?⟨ 0 ⟩ 𝓭 norm⊣ []
+      : ∀ {m}
+      → (∀ x → (U ⌢ x) ⊩ m x norm)
+      → U ⊩?⟨ 0 ⟩ m norm⊣ []
 
     norm-ϝ-nil-su
-      : ∀ {i 𝓭}
-      → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ 𝓭 norm⊣ [])
-      → U ⊩?⟨ suc i ⟩ 𝓭 norm⊣ []
+      : ∀ {i m}
+      → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ m norm⊣ [])
+      → U ⊩?⟨ suc i ⟩ m norm⊣ []
 
 -- Next, we show that the proof-theoretic characterization of
 -- tree normalizability was sound, i.e. that whenever the judgment
@@ -53,8 +53,8 @@ mutual
   norm↓
     : {Y Z : Set}
     → {U : _}
-    → {𝓭 : 𝔈 Nat Y Z}
-    → U ⊩ 𝓭 norm
+    → {m : 𝔈 Nat Y Z}
+    → U ⊩ m norm
     → 𝔅 Y Z
   norm↓ (norm-η x) =
     η x
@@ -65,9 +65,9 @@ mutual
   norm↓-ϝ
     : {Y Z : Set}
     → {U V : _}
-    → {𝓭 : Y → 𝔈 Nat Y Z}
+    → {m : Y → 𝔈 Nat Y Z}
     → {i : Nat}
-    → U ⊩?⟨ i ⟩ 𝓭 norm⊣ V
+    → U ⊩?⟨ i ⟩ m norm⊣ V
     → 𝔅 Y Z
 
   norm↓-ϝ (norm-ϝ-cons-ze p) =
@@ -89,36 +89,36 @@ mutual
   norm↑
     : {Y Z : Set}
     → (U : _)
-    → (𝓭 : 𝔈 Nat Y Z)
-    → U ⊩ 𝓭 norm
+    → (m : 𝔈 Nat Y Z)
+    → U ⊩ m norm
   norm↑ U (η x) =
     norm-η x
 
-  norm↑ U (?⟨ i ⟩ 𝓭) =
-    norm-ϝ (norm↑-ϝ _ _ i 𝓭)
+  norm↑ U (?⟨ i ⟩ m) =
+    norm-ϝ (norm↑-ϝ _ _ i m)
 
   norm↑-ϝ
     : {Y Z : Set}
     → (U V : _)
     → (i : Nat)
-    → (𝓭 : Y → 𝔈 Nat Y Z)
-    → U ⊩?⟨ i ⟩ 𝓭 norm⊣ V
+    → (m : Y → 𝔈 Nat Y Z)
+    → U ⊩?⟨ i ⟩ m norm⊣ V
 
-  norm↑-ϝ U [] zero 𝓭 =
+  norm↑-ϝ U [] zero m =
     norm-ϝ-nil-ze λ x →
-      norm↑ (U ⌢ x) (𝓭 x)
+      norm↑ (U ⌢ x) (m x)
 
-  norm↑-ϝ U [] (suc i) 𝓭 =
+  norm↑-ϝ U [] (suc i) m =
     norm-ϝ-nil-su λ x →
-      norm↑-ϝ (U ⌢ x) [] i 𝓭
+      norm↑-ϝ (U ⌢ x) [] i m
 
-  norm↑-ϝ U (x ∷ V) zero 𝓭 =
-    norm-ϝ-cons-ze (norm↑ U (𝓭 x))
+  norm↑-ϝ U (x ∷ V) zero m =
+    norm-ϝ-cons-ze (norm↑ U (m x))
 
-  norm↑-ϝ U (x ∷ V) (suc i) 𝓭 =
-    norm-ϝ-cons-su (norm↑-ϝ U V i 𝓭)
+  norm↑-ϝ U (x ∷ V) (suc i) m =
+    norm-ϝ-cons-su (norm↑-ϝ U V i m)
 
-norm↑₀ : {Y Z : Set} (𝓭 : 𝔈 Nat Y Z) → [] ⊩ 𝓭 norm
+norm↑₀ : {Y Z : Set} (m : 𝔈 Nat Y Z) → [] ⊩ m norm
 norm↑₀ = norm↑ []
 
 norm
@@ -153,10 +153,10 @@ module ⊢ where
       coh
         : {Y Z : Set}
         → {U : _}
-        → (𝓭 : 𝔈 Nat Y Z)
-        → (p : U ⊩ 𝓭 norm)
+        → (m : 𝔈 Nat Y Z)
+        → (p : U ⊩ m norm)
         → (α : 𝔖.Point Y)
-        → 𝔈[ 𝓭 ⋄ (U <++ α) ] ≡ 𝔅[ norm↓ p ⋄ α ]
+        → 𝔈[ m ⋄ (U <++ α) ] ≡ 𝔅[ norm↓ p ⋄ α ]
       coh .(η x) (norm-η x) α = refl
       coh _ (norm-ϝ p) = coh-ϝ _ _ _ _ p
 
@@ -164,31 +164,31 @@ module ⊢ where
         : {Y Z : Set}
         → (U : _) (V : _)
         → (i : Nat)
-        → (𝓭 : Y → 𝔈 Nat Y Z)
-        → (p : U ⊩?⟨ i ⟩ 𝓭 norm⊣ V)
+        → (m : Y → 𝔈 Nat Y Z)
+        → (p : U ⊩?⟨ i ⟩ m norm⊣ V)
         → (α : 𝔖.Point Y)
-        → 𝔈[ 𝓭 ((V <++ α) i) ⋄ (U <++ α) ] ≡ 𝔅[ norm↓-ϝ p ⋄ α ]
+        → 𝔈[ m ((V <++ α) i) ⋄ (U <++ α) ] ≡ 𝔅[ norm↓-ϝ p ⋄ α ]
 
-      coh-ϝ U (x ∷ V) .0 𝓭 (norm-ϝ-cons-ze p) α =
-        coh (𝓭 x) p α
+      coh-ϝ U (x ∷ V) .0 m (norm-ϝ-cons-ze p) α =
+        coh (m x) p α
 
-      coh-ϝ U (x ∷ V) (suc i) 𝓭 (norm-ϝ-cons-su p) α =
-        coh-ϝ U V i 𝓭 p α
+      coh-ϝ U (x ∷ V) (suc i) m (norm-ϝ-cons-su p) α =
+        coh-ϝ U V i m p α
 
-      coh-ϝ U .[] .0 𝓭 (norm-ϝ-nil-ze p) α =
-        coh (𝓭 _) (p _) (α ∘ suc)
-          ≡.▪ Core.⊢.⋄-extensional (𝓭 _) (prepend-snoc-id U α)
+      coh-ϝ U .[] .0 m (norm-ϝ-nil-ze p) α =
+        coh (m _) (p _) (α ∘ suc)
+          ≡.▪ Core.⊢.⋄-extensional (m _) (prepend-snoc-id U α)
 
-      coh-ϝ U .[] (suc i) 𝓭 (norm-ϝ-nil-su p) α =
-        coh-ϝ _ _ i 𝓭 (p _) (α ∘ suc)
-          ≡.▪ Core.⊢.⋄-extensional (𝓭 _) (prepend-snoc-id U α)
+      coh-ϝ U .[] (suc i) m (norm-ϝ-nil-su p) α =
+        coh-ϝ _ _ i m (p _) (α ∘ suc)
+          ≡.▪ Core.⊢.⋄-extensional (m _) (prepend-snoc-id U α)
 
 
   coh
     : {Y Z : Set}
-    → (𝓭 : 𝔈 Nat Y Z)
+    → (m : 𝔈 Nat Y Z)
     → (α : 𝔖.Point Y)
-    → 𝔈[ 𝓭 ⋄ α ] ≡ 𝔅[ norm 𝓭 ⋄ α ]
-  coh 𝓭 =
-    Coh.coh 𝓭
-      (norm↑ [] 𝓭)
+    → 𝔈[ m ⋄ α ] ≡ 𝔅[ norm m ⋄ α ]
+  coh m =
+    Coh.coh m
+      (norm↑ [] m)
