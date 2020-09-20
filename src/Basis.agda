@@ -9,14 +9,20 @@ open import Agda.Builtin.Bool public
 open import Agda.Builtin.List public
 
 
-postulate funext : ∀ {ℓ} {A B : Set ℓ} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
-postulate depfunext : {A : Set} {B : A → Set} {f g : (x : A) → B x} (h : ∀ x → f x ≡ g x) → f ≡ g
+private
+  variable
+    ℓ ℓ′ ℓ′′ : Level
+
+postulate
+  depfunext : {A : Set ℓ} {B : A → Set ℓ′} {f g : (x : A) → B x} (h : ∀ x → f x ≡ g x) → f ≡ g
+
+funext : {A : Set ℓ} {B : Set ℓ′} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
+funext = depfunext
 
 
 module ≡ where
   cmp
-    : ∀ {ℓ}
-    → {A : Set ℓ}
+    : {A : Set ℓ}
     → {a b c : A}
     → b ≡ c
     → a ≡ b
@@ -24,8 +30,7 @@ module ≡ where
   cmp refl refl = refl
 
   seq
-    : ∀ {ℓ}
-    → {A : Set ℓ}
+    : {A : Set ℓ}
     → {a b c : A}
     → a ≡ b
     → b ≡ c
@@ -33,7 +38,7 @@ module ≡ where
   seq refl refl = refl
 
   inv
-    : ∀ {ℓ} {A : Set ℓ} {a b : A}
+    : {A : Set ℓ} {a b : A}
     → a ≡ b
     → b ≡ a
   inv refl = refl
@@ -47,8 +52,7 @@ module ≡ where
 
 
   ap¹
-    : ∀ {ℓ₀ ℓ₁}
-    → {A : Set ℓ₀} {B : Set ℓ₁}
+    : {A : Set ℓ} {B : Set ℓ′}
     → ∀ {a₀ a₁}
     → (F : A → B)
     → a₀ ≡ a₁
@@ -56,9 +60,8 @@ module ≡ where
   ap¹ F refl = refl
 
   coe*
-    : ∀ {ℓ₀ ℓ₁}
-    → ∀ {A : Set ℓ₀} {a b}
-    → (Ψ : A → Set ℓ₁)
+    : {A : Set ℓ} {a b : A}
+    → (Ψ : A → Set ℓ′)
     → (ρ : a ≡ b)
     → Ψ a
     → Ψ b
@@ -87,7 +90,7 @@ open Fin public
 
 
 
-record Functor {ℓ} (F : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
+record Functor (F : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
   no-eta-equality
   field
     map : ∀ {A B} → (A → B) → (F A → F B)
@@ -96,7 +99,7 @@ record Functor {ℓ} (F : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
 
 open Functor ⦃ … ⦄ public
 
-record Monad {ℓ} (M : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
+record Monad (M : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
   infixr 1 bind
   infixl 1 _>>=_
 
@@ -130,8 +133,7 @@ record Monad {ℓ} (M : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
 open Monad ⦃ … ⦄ public
 
 _∘_
-  : ∀ {ℓ₀ ℓ₁ ℓ₂}
-  → {A : Set ℓ₀} {B : A → Set ℓ₁} {C : ∀ {a} → B a → Set ℓ₂}
+  : {A : Set ℓ} {B : A → Set ℓ} {C : ∀ {a} → B a → Set ℓ′′}
   → (g : ∀ {a} → (b : B a) → C b)
   → (f : (a : A) → B a)
   → ((a : A) → C (f a))
@@ -141,7 +143,7 @@ infixr 1 _∘_
 
 
 instance
-  functor-of-monad : ∀ {ℓ} {M : Set ℓ → Set ℓ} ⦃ _ : Monad M ⦄ → Functor M
+  functor-of-monad : {M : Set ℓ → Set ℓ} ⦃ _ : Monad M ⦄ → Functor M
   Functor.map (functor-of-monad {ℓ} {M} ⦃ monad ⦄) f = bind (ret ∘ f)
   Functor.law/id (functor-of-monad {ℓ} {M} ⦃ monad ⦄) = law/ρ
   Functor.law/cmp (functor-of-monad {ℓ} {M} ⦃ monad ⦄) f g m =

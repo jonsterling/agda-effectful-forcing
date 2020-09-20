@@ -10,9 +10,6 @@ import Dialogue as 𝓓
 
 open import SystemT.Syntax
 
-private
-  id : {ℓ : _} {A : Set ℓ} → A → A
-  id x = x
 rec : {X : Set} → (Nat → X → X) → X → Nat → X
 rec f x zero = x
 rec f x (suc n) = f n (rec f x n)
