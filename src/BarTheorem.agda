@@ -56,18 +56,20 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
       analyze U (η (suc n)) f =
         ϝ λ x →
-          analyze (U ⌢ x) (𝓓.η n)
-            (≡.coe* 𝔅 (Point.⊢.take-cong (Point.⊢.su-+-transpose ∣ U ∣ n) λ _ → refl)
-               ∘ f
-               ∘ (x <∷_))
+        analyze _ (𝓓.η n) λ α →
+        ≡.coe* 𝔅
+         (Point.⊢.take-cong
+          (Point.⊢.su-+-transpose ∣ U ∣ n)
+          (λ _ → refl))
+         (f (x <∷ α))
 
       analyze U (ϝ κ) f =
         ϝ λ x →
-          analyze (U ⌢ x) (κ x) λ α →
-            ≡.coe*
-              (λ n → 𝔅 ((U <++ x <∷ α) [ n ]))
-              (Point.⊢.su-+-transpose _ 𝔅[ κ x ⋄ α ])
-              (𝔅-mono (f (x <∷ α)))
+        analyze (U ⌢ x) (κ x) λ α →
+          ≡.coe*
+            (λ ■ → 𝔅 ((U <++ x <∷ α) [ ■ ]))
+            (Point.⊢.su-+-transpose _ 𝔅[ κ x ⋄ α ])
+            (𝔅-mono (f (x <∷ α)))
 
 
   -- The Bar Induction Principle is a corollary to the Bar Theorem.
@@ -85,9 +87,9 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       relabel U (η x) =
         𝔅⊑𝔄 U x
 
-      relabel U (ϝ 𝓭) =
+      relabel U (ϝ m) =
         𝔄-hered λ x →
-          relabel (U ⌢ x) (𝓭 x)
+        relabel (U ⌢ x) (m x)
 
 
       induction
@@ -96,4 +98,4 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         → 𝔄 []
       induction F =
         relabel []
-          ∘ bar-theorem F
+        ∘ bar-theorem F
