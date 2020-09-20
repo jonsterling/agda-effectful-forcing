@@ -51,13 +51,13 @@ module ≡ where
   _⁻¹ = inv
 
 
-  ap¹
+  cong
     : {A : Set ℓ} {B : Set ℓ′}
     → ∀ {a₀ a₁}
     → (F : A → B)
     → a₀ ≡ a₁
     → F a₀ ≡ F a₁
-  ap¹ F refl = refl
+  cong F refl = refl
 
   coe*
     : {A : Set ℓ} {a b : A}
@@ -150,7 +150,7 @@ instance
     ≡.inv
      (≡.seq
       (law/α m (ret ∘ f) (ret ∘ g))
-      (≡.ap¹
+      (≡.cong
        (λ ■ → bind ■ m)
        (funext λ x →
         law/λ (f x) (ret ∘ g))))

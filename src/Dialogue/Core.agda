@@ -44,13 +44,13 @@ instance
 
   Monad.law/ρ 𝔈-monad (η x) = refl
   Monad.law/ρ 𝔈-monad (?⟨ i ⟩ m) =
-    ≡.ap¹ ?⟨ i ⟩
+    ≡.cong ?⟨ i ⟩
      (funext λ x →
       law/ρ (m x))
 
   Monad.law/α 𝔈-monad (η x) f g = refl
   Monad.law/α 𝔈-monad (?⟨ i ⟩ m) f g =
-    ≡.ap¹ ?⟨ i ⟩
+    ≡.cong ?⟨ i ⟩
      (funext λ x →
       law/α (m x) f g)
 

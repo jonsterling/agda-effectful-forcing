@@ -33,11 +33,11 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         → 𝓓.norm (tm⟪ F ⟫₀ 𝓓.generic) ⊩ [] ◃ 𝔅
       lemma F p α =
         ≡.coe*
-         (λ x → 𝔅 (α [ x + 0 ]))
+         (λ ■ → 𝔅 (α [ ■ + 0 ]))
          (≡.seq
           (Coh.soundness₀ _ F _ generic λ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ →
            ≡.seq
-            (≡.ap¹ α ⟦n⟧∼⟪n⟫)
+            (≡.cong α ⟦n⟧∼⟪n⟫)
             (𝓓.⊢.generic-diagram α ⟪n⟫))
           (𝓓.⊢.coh (tm⟪ F ⟫₀ generic) α))
          (p α)

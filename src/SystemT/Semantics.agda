@@ -67,7 +67,7 @@ Alg.alg (F A) 𝔞 = join 𝔞
 Alg.law/η (F A) 𝔞 = refl
 Alg.law/μ (F A) (𝓓.η x) = refl
 Alg.law/μ (F A) (𝓓.?⟨ i ⟩ m) =
-  ≡.ap¹ 𝓓.?⟨ i ⟩
+  ≡.cong 𝓓.?⟨ i ⟩
    (funext λ x →
     Alg.law/μ (F A) (m x))
 
@@ -81,13 +81,13 @@ Alg.law/η (Alg/Π A B) f = depfunext λ x → Alg.law/η (B x) (f x)
 Alg.law/μ (Alg/Π A B) m =
   depfunext λ x →
   ≡.seq
-   (≡.ap¹ (Alg.alg (B x))
+   (≡.cong (Alg.alg (B x))
     (≡.seq
      (≡.inv (law/cmp _ _ m))
      (law/cmp _ _ m)))
    (≡.seq
     (Alg.law/μ (B x) (map (map (λ f → f x)) m))
-    (≡.ap¹ (Alg.alg (B x))
+    (≡.cong (Alg.alg (B x))
      (≡.seq
       (law/α m _ _)
       (≡.inv
@@ -184,7 +184,7 @@ module Coh where
   lift-sequence nat α ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫ ⟦n⟧ ⟪n⟫ refl rewrite ⟦s⟧∼⟪s⟫ ⟦n⟧ =
     ≡.seq
      (𝓓.⊢.⋄-commutes-with-bind ⟪n⟫ α)
-     (≡.ap¹ 𝔈[_⋄ α ]
+     (≡.cong 𝔈[_⋄ α ]
       (≡.inv
        (law/α ⟪n⟫ _ _)))
 
@@ -253,11 +253,11 @@ module Coh where
       aux : (x : Nat) → ret (⟪rec⟫ x) ≡ rec (λ x → ret ∘ ⟪s⟫ (ret x) ∘ Alg.alg ⟪ σ ⟫) (ret ⟪z⟫) x
       aux zero = refl
       aux (suc x) =
-        ≡.ap¹
+        ≡.cong
          (ret ∘ ⟪s⟫ (ret x))
          (≡.inv
           (≡.seq
-           (≡.ap¹ (Alg.alg ⟪ σ ⟫)
+           (≡.cong (Alg.alg ⟪ σ ⟫)
             (≡.inv (aux x)))
            (Alg.law/η ⟪ σ ⟫ (⟪rec⟫ x))))
 
