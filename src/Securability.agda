@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module Securability where
 
 open import Basis

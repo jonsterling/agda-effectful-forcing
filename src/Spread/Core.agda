@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module Spread.Core (X : Set) where
 
 open import Basis

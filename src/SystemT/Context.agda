@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module SystemT.Context where
 
 open import Basis

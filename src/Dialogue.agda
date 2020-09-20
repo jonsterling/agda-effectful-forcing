@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module Dialogue where
 
 import Dialogue.Core as Core

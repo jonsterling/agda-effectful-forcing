@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module SystemT.Semantics where
 
 open import Basis
@@ -65,11 +67,11 @@ F : Set → Alg
 Alg.car (F A) = 𝔈 A
 Alg.alg (F A) 𝔞 = join 𝔞
 Alg.law/η (F A) 𝔞 = refl
-Alg.law/μ (F A) (𝓓.η x) = refl
-Alg.law/μ (F A) (𝓓.?⟨ i ⟩ m) =
-  ≡.cong 𝓓.?⟨ i ⟩
-   (funext λ x →
-    Alg.law/μ (F A) (m x))
+Alg.law/μ (F A) m =
+  ≡.seq
+   (law/α m _ _)
+   (≡.inv
+    (law/α m _ _))
 
 U : Alg → Set
 U = Alg.car
@@ -114,12 +116,13 @@ infixl 5 _⟪,⟫_
 ⟪⋄⟫ ()
 
 
+
 tm⟪_⟫
   : ∀ {n τ} {Γ : Ctx n}
   → Γ ⊢ᵀ τ
   → U cx⟪ Γ ⟫
   → U ⟪ τ ⟫
-tm⟪ zero ⟫ ρ = 𝓓.η zero
+tm⟪ zero ⟫ ρ = ret zero
 tm⟪ succ x ⟫ ρ = map suc (tm⟪ x ⟫ ρ)
 tm⟪ rec[ σ ] s z n ⟫ ρ =
   Alg.alg ⟪ σ ⟫ do
@@ -136,6 +139,7 @@ tm⟪_⟫₀
   → U ⟪ τ ⟫
 tm⟪ t ⟫₀ =
   tm⟪ t ⟫ ⟪⋄⟫
+
 
 open Spread.Baire
 open 𝓓 using (𝔈[_⋄_]; ?⟨_⟩)

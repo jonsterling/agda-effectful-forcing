@@ -1,5 +1,8 @@
 -- Authors: Darin Morrison, Jon Sterling
 
+{-# OPTIONS --without-K #-}
+
+
 module Basis where
 
 open import Agda.Primitive public

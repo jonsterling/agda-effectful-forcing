@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module BarTheorem where
 
 open import Basis

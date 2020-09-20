@@ -1,7 +1,8 @@
+{-# OPTIONS --without-K #-}
+
 module SystemT.Syntax where
 
 open import Basis
-
 
 import SystemT.Context as Ctx
 open Ctx hiding (⋄; _,_)

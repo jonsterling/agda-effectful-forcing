@@ -1,3 +1,5 @@
+{-# OPTIONS --without-K #-}
+
 module Dialogue.Normalize where
 
 open import Basis
