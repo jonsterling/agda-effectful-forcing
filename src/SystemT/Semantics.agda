@@ -85,8 +85,8 @@ Alg.law/μ (Alg/Π A B) m =
   ≡.seq
    (≡.cong (Alg.alg (B x))
     (≡.seq
-     (≡.inv (law/cmp _ _ m))
-     (law/cmp _ _ m)))
+     (≡.inv (law/cmp m))
+     (law/cmp m)))
    (≡.seq
     (Alg.law/μ (B x) (map (map (λ f → f x)) m))
     (≡.cong (Alg.alg (B x))

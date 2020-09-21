@@ -111,7 +111,7 @@ record Functor (F : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
   field
     map : (A → B) → (F A → F B)
     law/id : (a : F A) → map (λ x → x) a ≡ a
-    law/cmp : (f : A → B) (g : B → C) (a : F A) → map (λ x → g (f x)) a ≡ map g (map f a)
+    law/cmp : {f : A → B} {g : B → C} (a : F A) → map (λ x → g (f x)) a ≡ map g (map f a)
 
 open Functor ⦃ … ⦄ public
 
@@ -141,7 +141,7 @@ instance
   functor-of-monad : {M : Set ℓ → Set ℓ} ⦃ _ : Monad M ⦄ → Functor M
   Functor.map functor-of-monad f = bind (ret ∘ f)
   Functor.law/id functor-of-monad = law/ρ
-  Functor.law/cmp functor-of-monad f g m =
+  Functor.law/cmp functor-of-monad m =
     ≡.inv
      (≡.seq
       (law/α _)
