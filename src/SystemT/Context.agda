@@ -23,4 +23,4 @@ ren-extend : ∀ {A : Set} {m n σ} {Γ : A ^ m} {Δ : A ^ n} → Ren Γ Δ → 
 Ren.ap (ren-extend ρ) zero = zero
 Ren.ap (ren-extend ρ) (suc i) = suc (Ren.ap ρ i)
 Ren.coh (ren-extend ρ) zero = refl
-Ren.coh (ren-extend ρ) (suc i) rewrite Ren.coh ρ i = refl
+Ren.coh (ren-extend ρ) (suc i) = Ren.coh ρ i

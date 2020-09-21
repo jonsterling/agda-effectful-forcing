@@ -22,6 +22,14 @@ postulate
 funext : {A : Set ℓ} {B : Set ℓ′} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
 funext = depfunext
 
+record Σ (A : Set ℓ) (B : A → Set ℓ′) : Set (ℓ ⊔ ℓ′) where
+  constructor _,_
+  field
+    fst : A
+    snd : B fst
+
+open Σ public
+
 
 module ≡ where
   cmp
@@ -70,6 +78,15 @@ module ≡ where
     → Ψ b
   coe* Ψ refl x = x
 
+  coe
+    : {A B : Set ℓ}
+    → A ≡ B
+    → A
+    → B
+  coe refl x = x
+
+  ind : {A : Set ℓ} {x : A} (P : (y : A) → x ≡ y → Set ℓ′) → P x refl → {y : A} (x≡y : x ≡ y) → P y x≡y
+  ind P p refl = p
 
 
 module Fin where
@@ -136,7 +153,7 @@ record Monad (M : Set ℓ → Set ℓ) : Set (lsuc ℓ) where
 open Monad ⦃ … ⦄ public
 
 _∘_
-  : {A : Set ℓ} {B : A → Set ℓ} {C : ∀ {a} → B a → Set ℓ′′}
+  : {A : Set ℓ} {B : A → Set ℓ′} {C : ∀ {a} → B a → Set ℓ′′}
   → (g : ∀ {a} → (b : B a) → C b)
   → (f : (a : A) → B a)
   → ((a : A) → C (f a))

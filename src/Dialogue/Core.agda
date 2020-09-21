@@ -100,8 +100,12 @@ module ⊢ where
   ⋄-extensional (η _) _ =
     refl
 
-  ⋄-extensional (?⟨ i ⟩ m) h rewrite h i =
-    ⋄-extensional (m _) h
+  ⋄-extensional (?⟨ i ⟩ m) {α} {β} h =
+    ≡.seq
+     (⋄-extensional (m (α i)) h)
+     (≡.cong
+      (λ ■ → 𝔈[ m ■ ⋄ β ])
+      (h i))
 
 
   ⋄-natural

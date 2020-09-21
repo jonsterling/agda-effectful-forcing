@@ -17,7 +17,10 @@ module Node where
 
   module ⊢ where
     _⟨⌢⟩_ : ∀ {U V : Node} {x y} → U ≡ V → x ≡ y → U ⌢ x ≡ V ⌢ y
-    refl ⟨⌢⟩ refl = refl
+    p ⟨⌢⟩ q =
+     ≡.seq
+      (≡.cong (_⌢ _) p)
+      (≡.cong (_ ⌢_) q)
 
 module Point where
 
@@ -60,42 +63,40 @@ module Point where
       → α ≈ β
       → i ≡ j
       → α i ≡ β j
-    nth-cong α β h refl =
-      h _
+    nth-cong α β h q =
+      ≡.seq (≡.cong α q) (h _)
 
     take-cong
       : ∀ {α β m n}
       → m ≡ n
       → α ≈ β
       → (α [ m ]) ≡ (β [ n ])
-    take-cong {m = zero} {n = .0} refl q = refl
-    take-cong {m = (suc m)} {n = .(suc m)} refl q
-      rewrite take-cong {m = m} refl q
-        | q m
-        = refl
+    take-cong {m = zero} p q = ≡.cong (_ [_]) p
+    take-cong {m = (suc m)} p q =
+       (≡.seq
+        (≡.seq
+         (≡.cong (_ ⌢_) (q m))
+         (≡.cong (_⌢ _) (take-cong refl q)))
+        (≡.cong (_ [_]) p))
 
     su-+-transpose
       : ∀ m n
       → suc (n + m) ≡ n + suc m
     su-+-transpose zero zero = refl
-    su-+-transpose zero (suc n)
-      rewrite su-+-transpose zero n
-        = refl
+    su-+-transpose zero (suc n) = ≡.cong suc (su-+-transpose zero n)
     su-+-transpose (suc m) zero = refl
-    su-+-transpose (suc m) (suc n)
-      rewrite su-+-transpose (suc m) n
-        = refl
+    su-+-transpose (suc m) (suc n) = ≡.cong suc (su-+-transpose (suc m) n)
 
     nat-+-zero
       : ∀ n
       → n + 0 ≡ n
     nat-+-zero zero = refl
-    nat-+-zero (suc n) rewrite nat-+-zero n = refl
+    nat-+-zero (suc n) = ≡.cong suc (nat-+-zero n)
 
     prepend-len
       : ∀ U n {α}
       → (U <++ α) (n + ∣ U ∣) ≡ α n
-    prepend-len [] n rewrite nat-+-zero n = refl
+    prepend-len [] n {α} = ≡.cong α (nat-+-zero n)
     prepend-len (U ⌢ x) n =
       prepend-len U (suc n)
       ≡.▪
