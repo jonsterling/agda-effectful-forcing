@@ -22,24 +22,8 @@ postulate
 funext : {A : Set ℓ} {B : Set ℓ′} {f g : A → B} (h : ∀ x → f x ≡ g x) → f ≡ g
 funext = depfunext
 
-record Σ (A : Set ℓ) (B : A → Set ℓ′) : Set (ℓ ⊔ ℓ′) where
-  constructor _,_
-  field
-    fst : A
-    snd : B fst
-
-open Σ public
-
 
 module ≡ where
-  cmp
-    : {A : Set ℓ}
-    → {a b c : A}
-    → b ≡ c
-    → a ≡ b
-    → a ≡ c
-  cmp refl refl = refl
-
   seq
     : {A : Set ℓ}
     → {a b c : A}
@@ -53,14 +37,6 @@ module ≡ where
     → a ≡ b
     → b ≡ a
   inv refl = refl
-
-
-  _▪_ = cmp
-  infixr 1 _▪_
-
-  _⁻¹ : _
-  _⁻¹ = inv
-
 
   cong
     : {A : Set ℓ} {B : Set ℓ′}

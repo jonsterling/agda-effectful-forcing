@@ -178,12 +178,14 @@ module ⊢ where
         coh-ϝ U V i m p α
 
       coh-ϝ U .[] .0 m (norm-ϝ-nil-ze p) α =
-        coh (m _) (p _) (α ∘ suc)
-          ≡.▪ Core.⊢.⋄-extensional (m _) (prepend-snoc-id U α)
+        ≡.seq
+         (Core.⊢.⋄-extensional (m _) (prepend-snoc-id U α))
+         (coh (m _) (p _) (α ∘ suc))
 
       coh-ϝ U .[] (suc i) m (norm-ϝ-nil-su p) α =
-        coh-ϝ _ _ i m (p _) (α ∘ suc)
-          ≡.▪ Core.⊢.⋄-extensional (m _) (prepend-snoc-id U α)
+        ≡.seq
+         (Core.⊢.⋄-extensional (m _) (prepend-snoc-id U α))
+         (coh-ϝ _ _ i m (p _) (α ∘ suc))
 
 
   coh

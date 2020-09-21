@@ -98,14 +98,11 @@ module Point where
       → (U <++ α) (n + ∣ U ∣) ≡ α n
     prepend-len [] n {α} = ≡.cong α (nat-+-zero n)
     prepend-len (U ⌢ x) n =
-      prepend-len U (suc n)
-      ≡.▪
-        nth-cong
-          (U ⌢ x <++ _)
-          _
-          (λ i → refl)
-          (su-+-transpose ∣ U ∣ n ≡.⁻¹)
-
+      ≡.seq
+       (nth-cong (U ⌢ x <++ _) _
+        (λ _ → refl)
+        (≡.inv (su-+-transpose ∣ U ∣ n)))
+       (prepend-len U (suc n))
 
     prepend-take-len
       : ∀ U {α}
