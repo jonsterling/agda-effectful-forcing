@@ -1,3 +1,3 @@
 #!/bin/bash 
 
-agda --html-dir=docs --html src/index.agda
+agda --html-dir=docs --css style.css --html src/index.agda
