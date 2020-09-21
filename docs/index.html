@@ -1,20 +1,37 @@
 <!DOCTYPE HTML>
 <html><head><meta charset="utf-8"><title>index</title><link rel="stylesheet" href="Agda.css"></head><body><pre class="Agda"><a id="1" class="Symbol">{-#</a> <a id="5" class="Keyword">OPTIONS</a> <a id="13" class="Pragma">--without-K</a> <a id="25" class="Symbol">#-}</a>
 
-<a id="30" class="Keyword">module</a> <a id="37" href="index.html" class="Module">index</a> <a id="43" class="Keyword">where</a>
+<a id="30" class="Comment">-- This is the formalization of the paper &quot;Higher-Order Functions and</a>
+<a id="100" class="Comment">-- Brouwer&#39;s Thesis&quot; by Sterling.</a>
 
-<a id="50" class="Comment">-- The main result</a>
-<a id="69" class="Keyword">import</a> <a id="76" href="BarTheorem.html" class="Module">BarTheorem</a>
+<a id="135" class="Comment">-- This formalization is carried out in Intensional Type Theory</a>
+<a id="199" class="Comment">-- extended by the function extensionality axiom. We have been careful</a>
+<a id="270" class="Comment">-- not to assume Axiom K, so our development is compatible with</a>
+<a id="334" class="Comment">-- homotopy type theory.</a>
 
-<a id="88" class="Comment">-- The definition of the Escardó and Brouwer dialogues</a>
-<a id="143" class="Keyword">import</a> <a id="150" href="Dialogue.Core.html" class="Module">Dialogue.Core</a>
+<a id="360" class="Comment">-- We have also avoided the use of pattern matching with the identity</a>
+<a id="430" class="Comment">-- type, as well as the built-in &quot;rewrite&quot; tactic. Consequently, this</a>
+<a id="500" class="Comment">-- development could easily be ported to Cubical Agda using the</a>
+<a id="564" class="Comment">-- inductive identity type (where the J eliminator computes</a>
+<a id="624" class="Comment">-- definitionally).</a>
 
-<a id="165" class="Comment">-- The normalization of Escardó dialogues into Brouwer dialogues</a>
-<a id="230" class="Keyword">import</a> <a id="237" href="Dialogue.Normalize.html" class="Module">Dialogue.Normalize</a>
+<a id="645" class="Keyword">module</a> <a id="652" href="index.html" class="Module">index</a> <a id="658" class="Keyword">where</a>
 
-<a id="257" class="Comment">-- The syntax of System T</a>
-<a id="283" class="Keyword">import</a> <a id="290" href="SystemT.Syntax.html" class="Module">SystemT.Syntax</a>
+<a id="665" class="Comment">-- Our basic assumptions and prelude.</a>
+<a id="703" class="Keyword">import</a> <a id="710" href="Basis.html" class="Module">Basis</a>
 
-<a id="306" class="Comment">-- The two semantics of System T and their compatibility</a>
-<a id="363" class="Keyword">import</a> <a id="370" href="SystemT.Semantics.html" class="Module">SystemT.Semantics</a>
+<a id="717" class="Comment">-- The main result</a>
+<a id="736" class="Keyword">import</a> <a id="743" href="BarTheorem.html" class="Module">BarTheorem</a>
+
+<a id="755" class="Comment">-- The definition of the Escardó and Brouwer dialogues</a>
+<a id="810" class="Keyword">import</a> <a id="817" href="Dialogue.Core.html" class="Module">Dialogue.Core</a>
+
+<a id="832" class="Comment">-- The normalization of Escardó dialogues into Brouwer dialogues</a>
+<a id="897" class="Keyword">import</a> <a id="904" href="Dialogue.Normalize.html" class="Module">Dialogue.Normalize</a>
+
+<a id="924" class="Comment">-- The syntax of System T</a>
+<a id="950" class="Keyword">import</a> <a id="957" href="SystemT.Syntax.html" class="Module">SystemT.Syntax</a>
+
+<a id="973" class="Comment">-- The two semantics of System T and their compatibility</a>
+<a id="1030" class="Keyword">import</a> <a id="1037" href="SystemT.Semantics.html" class="Module">SystemT.Semantics</a>
 </pre></body></html>

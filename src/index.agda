@@ -1,6 +1,23 @@
 {-# OPTIONS --without-K #-}
 
+-- This is the formalization of the paper "Higher-Order Functions and
+-- Brouwer's Thesis" by Sterling.
+
+-- This formalization is carried out in Intensional Type Theory
+-- extended by the function extensionality axiom. We have been careful
+-- not to assume Axiom K, so our development is compatible with
+-- homotopy type theory.
+
+-- We have also avoided the use of pattern matching with the identity
+-- type, as well as the built-in "rewrite" tactic. Consequently, this
+-- development could easily be ported to Cubical Agda using the
+-- inductive identity type (where the J eliminator computes
+-- definitionally).
+
 module index where
+
+-- Our basic assumptions and prelude.
+import Basis
 
 -- The main result
 import BarTheorem
