@@ -49,8 +49,8 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
       analyze
         : (U : Node)
-        → (𝓭 : 𝓓.𝔅 Nat Nat)
-        → 𝓭 ⊩ U ◃ 𝔅
+        → (m : 𝓓.𝔅 Nat Nat)
+        → m ⊩ U ◃ 𝔅
         → U ◂ 𝔅
 
       analyze U (η zero) f =
