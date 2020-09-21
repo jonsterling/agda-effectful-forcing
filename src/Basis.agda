@@ -79,6 +79,13 @@ module ≡ where
   ind : {x : A} (P : (y : A) → x ≡ y → Set ℓ′) → P x refl → {y : A} (x≡y : x ≡ y) → P y x≡y
   ind P p refl = p
 
+  use_by_∎
+    : {B : Set ℓ}
+    → A
+    → A ≡ B
+    → B
+  use a by p ∎ = coe p a
+
 
 module Fin where
   data Fin : (n : Nat) → Set where
