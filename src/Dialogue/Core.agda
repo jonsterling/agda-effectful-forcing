@@ -46,21 +46,21 @@ private
   𝔈-bind/ρ (η x) = refl
   𝔈-bind/ρ (?⟨ i ⟩ m) =
     ≡.cong ?⟨ i ⟩
-      (funext λ x →
-       𝔈-bind/ρ (m x))
+     (funext λ x →
+      𝔈-bind/ρ (m x))
 
-  𝔈-bind/α : {A B C : Set} (m : 𝔈 X Y A) (f : A → 𝔈 X Y B) (g : B → 𝔈 X Y C) → 𝔈-bind g (𝔈-bind f m) ≡ 𝔈-bind (λ x → 𝔈-bind g (f x)) m
-  𝔈-bind/α (η x) f g = refl
-  𝔈-bind/α (?⟨ i ⟩ m) f g =
+  𝔈-bind/α : {A B C : Set} {f : A → 𝔈 X Y B} {g : B → 𝔈 X Y C} (m : 𝔈 X Y A) → 𝔈-bind g (𝔈-bind f m) ≡ 𝔈-bind (𝔈-bind g ∘ f) m
+  𝔈-bind/α (η x) = refl
+  𝔈-bind/α (?⟨ i ⟩ m) =
     ≡.cong ?⟨ i ⟩
      (funext λ x →
-      𝔈-bind/α (m x) f g)
+      𝔈-bind/α (m x))
 
 instance
   𝔈-monad : {X Y : Set} → Monad (𝔈 X Y)
   Monad.ret 𝔈-monad = η_
   Monad.bind 𝔈-monad = 𝔈-bind
-  Monad.law/λ 𝔈-monad _ _ = refl
+  Monad.law/λ 𝔈-monad = refl
   Monad.law/ρ 𝔈-monad = 𝔈-bind/ρ
   Monad.law/α 𝔈-monad = 𝔈-bind/α
 

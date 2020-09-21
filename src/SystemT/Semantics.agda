@@ -69,9 +69,9 @@ Alg.alg (F A) 𝔞 = join 𝔞
 Alg.law/η (F A) 𝔞 = refl
 Alg.law/μ (F A) m =
   ≡.seq
-   (law/α m _ _)
+   (law/α m)
    (≡.inv
-    (law/α m _ _))
+    (law/α m))
 
 U : Alg → Set
 U = Alg.car
@@ -91,9 +91,9 @@ Alg.law/μ (Alg/Π A B) m =
     (Alg.law/μ (B x) (map (map (λ f → f x)) m))
     (≡.cong (Alg.alg (B x))
      (≡.seq
-      (law/α m _ _)
+      (law/α m)
       (≡.inv
-       (law/α m _ _)))))
+       (law/α m)))))
 
 
 Alg[_⇒_] : Set → Alg → Alg
@@ -192,13 +192,13 @@ module Coh where
       (≡.cong (λ ■ → 𝔈[ ⟪s⟫ ■ ⋄ α ]) ⟦n⟧∼⟪n⟫)
       (≡.seq
        (𝓓.⊢.⋄-commutes-with-bind ⟪n⟫ α)
-       (≡.cong 𝔈[_⋄ α ] (≡.inv (law/α ⟪n⟫ _ _)))))
+       (≡.cong 𝔈[_⋄ α ] (≡.inv (law/α ⟪n⟫)))))
 
   lift-sequence (σ ⇒ τ) α ⟦f⟧ ⟪f⟫ ⟦f⟧∼⟪f⟫ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫ =
     ≡.coe*
      (α ⊨ τ ∋ ⟦f⟧ ⟦n⟧ ⟦s⟧ ∼_ ∘ Alg.alg ⟪ τ ⟫)
      (≡.inv
-      (law/α ⟪n⟫ _ _))
+      (law/α ⟪n⟫))
      (lift-sequence _ _ _ _
       (λ i → ⟦f⟧∼⟪f⟫ i ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫)
       ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫)
