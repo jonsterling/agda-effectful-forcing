@@ -6,13 +6,8 @@ open import Basis
 open import Spread.Baire
 open import Securability
 open import SystemT.Syntax
-import SystemT.Context as Ctx
-
-import Dialogue as 𝓓
-import SystemT.Semantics as Sem
-
-open Sem
-open 𝓓 hiding (module ⊢)
+open import SystemT.Semantics
+open import Dialogue as 𝓓 hiding (module ⊢)
 
 module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
 
@@ -32,7 +27,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       eval
         : (F : ⊢ᵀ (nat ⇒ nat) ⇒ nat)
         → F ⊩ [] ◃ᵀ 𝔅
-        → 𝓓.norm (tm⟪ F ⟫₀ 𝓓.generic) ⊩ [] ◃ 𝔅
+        → norm (tm⟪ F ⟫₀ generic) ⊩ [] ◃ 𝔅
       eval F p α =
         ≡.coe*
          (λ ■ → 𝔅 (α [ ■ + 0 ]))
