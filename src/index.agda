@@ -11,8 +11,8 @@
 -- We have also avoided the use of pattern matching with the identity
 -- type, as well as the built-in "rewrite" tactic. Consequently, this
 -- development could easily be ported to Cubical Agda using the
--- inductive identity type (where the J eliminator computes
--- definitionally).
+-- inductive identity type, avoiding the use of any non-computational
+-- axioms.
 
 module index where
 
