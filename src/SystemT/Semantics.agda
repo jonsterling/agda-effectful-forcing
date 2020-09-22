@@ -204,17 +204,23 @@ module Coh where
     ≡.seq
      (⟦s⟧∼⟪s⟫ ⟦n⟧)
      (≡.seq
-      (≡.cong (λ ■ → 𝔈[ ⟪s⟫ ■ ⋄ α ]) ⟦n⟧∼⟪n⟫)
+      (≡.cong
+       (𝔈[_⋄ α ] ∘ ⟪s⟫)
+       ⟦n⟧∼⟪n⟫)
       (≡.seq
        (𝓓.⊢.⋄-commutes-with-bind ⟪n⟫ α)
-       (≡.cong 𝔈[_⋄ α ] (≡.inv (law/α ⟪n⟫)))))
+       (≡.cong
+        𝔈[_⋄ α ]
+        (≡.inv
+         (law/α ⟪n⟫)))))
 
   lift-sequence (σ ⇒ τ) α ⟦f⟧ ⟪f⟫ ⟦f⟧∼⟪f⟫ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫ =
     let ih = lift-sequence _ _ _ _ (λ k → ⟦f⟧∼⟪f⟫ k ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫) ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ in
     ≡.use ih by
       ≡.cong
        (α ⊨ τ ∋ ⟦f⟧ ⟦n⟧ ⟦s⟧ ∼_ ∘ Alg.alg ⟪ τ ⟫)
-       (≡.inv (law/α ⟪n⟫))
+       (≡.inv
+        (law/α ⟪n⟫))
     ∎
 
 
@@ -281,7 +287,8 @@ module Coh where
          (ret ∘ ⟪s⟫ (ret x))
          (≡.inv
           (≡.seq
-           (≡.cong (Alg.alg ⟪ σ ⟫)
+           (≡.cong
+            (Alg.alg ⟪ σ ⟫)
             (≡.inv (aux x)))
            (Alg.law/η ⟪ σ ⟫ (⟪rec⟫ x))))
 
