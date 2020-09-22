@@ -25,15 +25,15 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
     → F ⊩ [] ◃ᵀ 𝔅
     → [] ◂ 𝔅
   bar-theorem F =
-    analyze [] (𝓓.norm (tm⟪ F ⟫₀ 𝓓.generic))
-      ∘ lemma F
+    readback [] (𝓓.norm (tm⟪ F ⟫₀ 𝓓.generic))
+      ∘ eval F
 
     where
-      lemma
+      eval
         : (F : ⊢ᵀ (nat ⇒ nat) ⇒ nat)
         → F ⊩ [] ◃ᵀ 𝔅
         → 𝓓.norm (tm⟪ F ⟫₀ 𝓓.generic) ⊩ [] ◃ 𝔅
-      lemma F p α =
+      eval F p α =
         ≡.coe*
          (λ ■ → 𝔅 (α [ ■ + 0 ]))
          (≡.seq
@@ -47,31 +47,44 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
       0⋯ : Point
       0⋯ _ = 0
 
-      analyze
-        : (U : Node)
-        → (m : 𝓓.𝔅 Nat Nat)
-        → m ⊩ U ◃ 𝔅
+
+      readback/η
+        : {U : Node}
+        → (k : ℕ)
+        → spit k ⊩ U ◃ 𝔅
         → U ◂ 𝔅
+      readback/η zero f =
+        spit
+         (≡.coe* 𝔅
+          (Point.⊢.prepend-take-len _)
+          (f 0⋯))
 
-      analyze U (η zero) f =
-        η ≡.coe* 𝔅 (Point.⊢.prepend-take-len U) (f 0⋯)
-
-      analyze U (η (suc n)) f =
-        ϝ λ x →
-        analyze _ (𝓓.η n) λ α →
+      readback/η (suc n) f =
+        bite λ x →
+        readback/η n λ α →
         ≡.coe* 𝔅
          (Point.⊢.take-cong
-          (Point.⊢.su-+-transpose ∣ U ∣ n)
+          (Point.⊢.su-+-transpose _ _)
           (λ _ → refl))
          (f (x <∷ α))
 
-      analyze U (ϝ κ) f =
-        ϝ λ x →
-        analyze (U ⌢ x) (κ x) λ α →
-          ≡.coe*
-            (λ ■ → 𝔅 ((U <++ x <∷ α) [ ■ ]))
-            (Point.⊢.su-+-transpose _ 𝔅[ κ x ⋄ α ])
-            (𝔅-mono (f (x <∷ α)))
+
+      readback
+        : (U : Node)
+        → (m : 𝓓.𝔅 ℕ ℕ)
+        → m ⊩ U ◃ 𝔅
+        → U ◂ 𝔅
+
+      readback U (spit n) f =
+        readback/η n f
+
+      readback U (bite κ) f =
+        bite λ x →
+        readback _ (κ x) λ α →
+        ≡.coe*
+          (𝔅 ∘ U <++ x <∷ α [_])
+          (Point.⊢.su-+-transpose _ 𝔅[ κ x ⋄ α ])
+          (𝔅-mono (f (x <∷ α)))
 
 
   -- The Bar Induction Principle is a corollary to the Bar Theorem.
@@ -86,10 +99,10 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         → (U ◂ 𝔅)
         → 𝔄 U
 
-      relabel U (η x) =
+      relabel U (spit x) =
         𝔅⊑𝔄 U x
 
-      relabel U (ϝ m) =
+      relabel U (bite m) =
         𝔄-hered λ x →
         relabel (U ⌢ x) (m x)
 

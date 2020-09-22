@@ -13,13 +13,13 @@ data Type : Set where
 
 infixr 6 _⇒_
 
-Ctx : Nat → Set
+Ctx : ℕ → Set
 Ctx n = Type ^ n
 
 module _ where
   open Ctx
 
-  data _⊢ᵀ_ {n : Nat} : (Γ : Ctx n) → Type → Set where
+  data _⊢ᵀ_ {n : ℕ} : (Γ : Ctx n) → Type → Set where
     zero
       : {Γ : Ctx n}
       → Γ ⊢ᵀ nat

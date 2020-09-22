@@ -19,6 +19,9 @@ module index where
 -- Our basic assumptions and prelude.
 import Basis
 
+-- Algebras for a monad
+import Algebra
+
 -- The main result
 import BarTheorem
 

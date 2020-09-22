@@ -7,7 +7,7 @@ module Basis where
 
 open import Agda.Primitive public
 open import Agda.Builtin.Equality public
-open import Agda.Builtin.Nat public
+open import Agda.Builtin.Nat renaming (Nat to ℕ) public
 open import Agda.Builtin.Bool public
 open import Agda.Builtin.List public
 
@@ -88,7 +88,7 @@ module ≡ where
 
 
 module Fin where
-  data Fin : (n : Nat) → Set where
+  data Fin : (n : ℕ) → Set where
     zero
       : ∀ {n}
       → Fin (suc n)
@@ -97,7 +97,7 @@ module Fin where
       → (i : Fin n)
       → Fin (suc n)
 
-  ⊆nat : ∀ {n} → Fin n → Nat
+  ⊆nat : ∀ {n} → Fin n → ℕ
   ⊆nat zero = zero
   ⊆nat (suc i) = suc (⊆nat i)
 

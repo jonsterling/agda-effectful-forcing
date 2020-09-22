@@ -11,7 +11,7 @@ module Node where
 
   infixl 5 _⌢_
 
-  ∣_∣ : Node → Nat
+  ∣_∣ : Node → ℕ
   ∣ [] ∣ = 0
   ∣ U ⌢ x ∣ = suc ∣ U ∣
 
@@ -25,7 +25,7 @@ module Node where
 module Point where
 
   Point : Set
-  Point = Nat → X
+  Point = ℕ → X
 
   head : Point → X
   head α = α 0
@@ -38,7 +38,7 @@ module Point where
   (x <∷ α) (suc i) = α i
 
   _≈_ : Point → Point → Set
-  α ≈ β = (i : Nat) → α i ≡ β i
+  α ≈ β = (i : ℕ) → α i ≡ β i
 
   open Node hiding (module ⊢)
 
@@ -52,14 +52,14 @@ module Point where
 
   _[_]
     : Point
-    → Nat
+    → ℕ
     → Node
   α [ zero ] = []
   α [ suc n ] = (α [ n ]) ⌢ α n
 
   module ⊢ where
     nth-cong
-      : (α β : Point) {i j : Nat}
+      : (α β : Point) {i j : ℕ}
       → α ≈ β
       → i ≡ j
       → α i ≡ β j

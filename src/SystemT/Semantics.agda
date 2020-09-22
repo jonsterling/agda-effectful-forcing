@@ -3,164 +3,115 @@
 module SystemT.Semantics where
 
 open import Basis
-
-import SystemT.Context as Ctx
-open Ctx hiding (⋄; _,_)
-
-import Spread.Baire
-import Dialogue as 𝓓
-
+open import SystemT.Context
 open import SystemT.Syntax
+import Dialogue as 𝓓
+import Spread.Baire
 
-rec : {X : Set} → (Nat → X → X) → X → Nat → X
+rec : {X : Set} → (ℕ → X → X) → X → ℕ → X
 rec f x zero = x
 rec f x (suc n) = f n (rec f x n)
 
+module StandardSemantics where
+  ⟦_⟧ : Type → Set
+  ⟦ nat ⟧ = ℕ
+  ⟦ σ ⇒ τ ⟧ = ⟦ σ ⟧ → ⟦ τ ⟧
 
-⟦_⟧ : Type → Set
-⟦ nat ⟧ = Nat
-⟦ σ ⇒ τ ⟧ = ⟦ σ ⟧ → ⟦ τ ⟧
+  cx⟦_⟧ : {n : ℕ} → Ctx n → Set
+  cx⟦ Γ ⟧ = (i : Fin _) → ⟦ Γ [ i ] ⟧
 
-cx⟦_⟧ : {n : Nat} → Ctx n → Set
-cx⟦ Γ ⟧ = (i : Fin _) → ⟦ Γ [ i ] ⟧
+  ⟦⋄⟧ : cx⟦ ⋄ ⟧
+  ⟦⋄⟧ ()
 
-⟦⋄⟧ : cx⟦ Ctx.⋄ ⟧
-⟦⋄⟧ ()
+  _⟦,⟧_ : ∀ {n} {Γ : Ctx n} {σ : Type} → cx⟦ Γ ⟧ → ⟦ σ ⟧ → cx⟦ Γ , σ ⟧
+  (ρ ⟦,⟧ x) zero = x
+  (ρ ⟦,⟧ x) (suc i) = ρ i
 
-_⟦,⟧_ : ∀ {n} {Γ : Ctx n} {σ : Type} → cx⟦ Γ ⟧ → ⟦ σ ⟧ → cx⟦ Γ Ctx., σ ⟧
-(ρ ⟦,⟧ x) zero = x
-(ρ ⟦,⟧ x) (suc i) = ρ i
+  infixl 5 _⟦,⟧_
 
-infixl 5 _⟦,⟧_
+  tm⟦_⟧
+    : ∀ {n τ} {Γ : Ctx n}
+    → Γ ⊢ᵀ τ
+    → cx⟦ Γ ⟧
+    → ⟦ τ ⟧
 
-tm⟦_⟧
-  : ∀ {n τ} {Γ : Ctx n}
-  → Γ ⊢ᵀ τ
-  → cx⟦ Γ ⟧
-  → ⟦ τ ⟧
+  tm⟦ zero ⟧ _ = zero
+  tm⟦ succ m ⟧ ρ = suc (tm⟦ m ⟧ ρ)
 
-tm⟦ zero ⟧ _ = zero
-tm⟦ succ m ⟧ ρ = suc (tm⟦ m ⟧ ρ)
+  tm⟦ rec[ σ ] s z n ⟧ ρ =
+   rec
+    (λ x y → tm⟦ s ⟧ (ρ ⟦,⟧ x ⟦,⟧ y ))
+    (tm⟦ z ⟧ ρ)
+    (tm⟦ n ⟧ ρ)
 
-tm⟦ rec[ σ ] s z n ⟧ ρ =
- rec
-  (λ x y → tm⟦ s ⟧ (ρ ⟦,⟧ x ⟦,⟧ y ))
-  (tm⟦ z ⟧ ρ)
-  (tm⟦ n ⟧ ρ)
+  tm⟦ ν i q ⟧ ρ =
+    ≡.use ρ i by
+      ≡.cong ⟦_⟧ (≡.inv q)
+    ∎
 
-tm⟦ ν i q ⟧ ρ =
-  ≡.use ρ i by
-    ≡.cong ⟦_⟧ (≡.inv q)
-  ∎
+  tm⟦ ƛ t ⟧ ρ x = tm⟦ t ⟧ (ρ ⟦,⟧ x)
+  tm⟦ m · n ⟧ ρ = tm⟦ m ⟧ ρ (tm⟦ n ⟧ ρ)
 
-tm⟦ ƛ t ⟧ ρ x = tm⟦ t ⟧ (ρ ⟦,⟧ x)
-tm⟦ m · n ⟧ ρ = tm⟦ m ⟧ ρ (tm⟦ n ⟧ ρ)
+  tm⟦_⟧₀
+    : ∀ {τ}
+    → ⋄ ⊢ᵀ τ
+    → ⟦ τ ⟧
+  tm⟦ t ⟧₀ = tm⟦ t ⟧ ⟦⋄⟧
 
-tm⟦_⟧₀
-  : ∀ {τ}
-  → Ctx.⋄ ⊢ᵀ τ
-  → ⟦ τ ⟧
-tm⟦ t ⟧₀ = tm⟦ t ⟧ ⟦⋄⟧
+module AlgebraSemantics (T : Set → Set) ⦃ T-monad : Monad T ⦄ where
+  open import Algebra T public
+  ⟪_⟫ : Type → Alg
+  ⟪ nat ⟫ = F ℕ
+  ⟪ σ ⇒ τ ⟫ = Alg[ U ⟪ σ ⟫ ⇒ ⟪ τ ⟫ ]
 
+  cx⟪_⟫ : {n : ℕ} → Ctx n → Alg
+  cx⟪_⟫ {n} Γ = Alg/Π (Fin n) λ i → ⟪ Γ [ i ] ⟫
 
+  _⟪,⟫_ : ∀ {n} {Γ : Ctx n} {σ : Type} → U cx⟪ Γ ⟫ → U ⟪ σ ⟫ → U cx⟪ Γ , σ ⟫
+  (ρ ⟪,⟫ x) zero = x
+  (ρ ⟪,⟫ x) (suc i) = ρ i
 
-𝔈 = 𝓓.𝔈 Nat Nat
+  infixl 5 _⟪,⟫_
 
-record Alg : Set₁ where
-  constructor algebra
-  field
-    car : Set
-    alg : 𝔈 car → car
-    law/η : ∀ x → alg (𝓓.η x) ≡ x
-    law/μ : ∀ (m : 𝔈 (𝔈 car)) → alg (map alg m) ≡ alg (join m)
+  ⟪⋄⟫ : U cx⟪ ⋄ ⟫
+  ⟪⋄⟫ ()
 
-F : Set → Alg
-Alg.car (F A) = 𝔈 A
-Alg.alg (F A) 𝔞 = join 𝔞
-Alg.law/η (F A) 𝔞 = refl
-Alg.law/μ (F A) m =
-  ≡.seq
-   (law/α m)
-   (≡.inv
-    (law/α m))
+  tm⟪_⟫
+    : ∀ {n τ} {Γ : Ctx n}
+    → Γ ⊢ᵀ τ
+    → U cx⟪ Γ ⟫
+    → U ⟪ τ ⟫
+  tm⟪ zero ⟫ ρ = ret zero
+  tm⟪ succ x ⟫ ρ = map suc (tm⟪ x ⟫ ρ)
+  tm⟪ rec[ σ ] s z n ⟫ ρ =
+    Alg.alg ⟪ σ ⟫ do
+      n ← tm⟪ n ⟫ ρ
+      rec (λ x ih → ret (tm⟪ s ⟫ (ρ ⟪,⟫ ret x ⟪,⟫ Alg.alg ⟪ σ ⟫ ih))) (ret (tm⟪ z ⟫ ρ)) n
 
-U : Alg → Set
-U = Alg.car
+  tm⟪ ν i q ⟫ ρ =
+    ≡.use ρ i by
+      ≡.cong (U ∘ ⟪_⟫) (≡.inv q)
+    ∎
 
-Alg/Π : (A : Set) → (A → Alg) → Alg
-Alg.car (Alg/Π A B) = (x : A) → Alg.car (B x)
-Alg.alg (Alg/Π A B) m x = Alg.alg (B x) (map (λ f → f x) m)
-Alg.law/η (Alg/Π A B) f = depfunext λ x → Alg.law/η (B x) (f x)
-Alg.law/μ (Alg/Π A B) m =
-  depfunext λ x →
-  ≡.seq
-   (≡.cong (Alg.alg (B x))
-    (≡.seq
-     (≡.inv (law/cmp m))
-     (law/cmp m)))
-   (≡.seq
-    (Alg.law/μ (B x) (map (map (λ f → f x)) m))
-    (≡.cong (Alg.alg (B x))
-     (≡.seq
-      (law/α m)
-      (≡.inv
-       (law/α m)))))
+  tm⟪ ƛ t ⟫ ρ x = tm⟪ t ⟫ (ρ ⟪,⟫ x)
+  tm⟪ t · u ⟫ ρ = tm⟪ t ⟫ ρ (tm⟪ u ⟫ ρ)
 
-
-Alg[_⇒_] : Set → Alg → Alg
-Alg[ A ⇒ B ] = Alg/Π A λ _ → B
-
-⟪_⟫ : Type → Alg
-⟪ nat ⟫ = F Nat
-⟪ σ ⇒ τ ⟫ = Alg[ U ⟪ σ ⟫ ⇒ ⟪ τ ⟫ ]
-
-cx⟪_⟫ : {n : Nat} → Ctx n → Alg
-cx⟪_⟫ {n} Γ = Alg/Π (Fin n) λ i → ⟪ Γ Ctx.[ i ] ⟫
-
-_⟪,⟫_ : ∀ {n} {Γ : Ctx n} {σ : Type} → U cx⟪ Γ ⟫ → U ⟪ σ ⟫ → U cx⟪ Γ Ctx., σ ⟫
-(ρ ⟪,⟫ x) zero = x
-(ρ ⟪,⟫ x) (suc i) = ρ i
-
-infixl 5 _⟪,⟫_
-
-⟪⋄⟫ : U cx⟪ Ctx.⋄ ⟫
-⟪⋄⟫ ()
+  tm⟪_⟫₀
+    : ∀ {τ}
+    → ⋄ ⊢ᵀ τ
+    → U ⟪ τ ⟫
+  tm⟪ t ⟫₀ =
+    tm⟪ t ⟫ ⟪⋄⟫
 
 
+𝔈 = 𝓓.𝔈 ℕ ℕ
+open AlgebraSemantics 𝔈 public
+open StandardSemantics public
 
-tm⟪_⟫
-  : ∀ {n τ} {Γ : Ctx n}
-  → Γ ⊢ᵀ τ
-  → U cx⟪ Γ ⟫
-  → U ⟪ τ ⟫
-tm⟪ zero ⟫ ρ = ret zero
-tm⟪ succ x ⟫ ρ = map suc (tm⟪ x ⟫ ρ)
-tm⟪ rec[ σ ] s z n ⟫ ρ =
-  Alg.alg ⟪ σ ⟫ do
-    n ← tm⟪ n ⟫ ρ
-    rec (λ x ih → 𝓓.η (tm⟪ s ⟫ (ρ ⟪,⟫ ret x ⟪,⟫ Alg.alg ⟪ σ ⟫ ih))) (ret (tm⟪ z ⟫ ρ)) n
-
-tm⟪ ν i q ⟫ ρ =
-  ≡.use ρ i by
-    ≡.cong (U ∘ ⟪_⟫) (≡.inv q)
-  ∎
-
-tm⟪ ƛ t ⟫ ρ x = tm⟪ t ⟫ (ρ ⟪,⟫ x)
-tm⟪ t · u ⟫ ρ = tm⟪ t ⟫ ρ (tm⟪ u ⟫ ρ)
-
-tm⟪_⟫₀
-  : ∀ {τ}
-  → Ctx.⋄ ⊢ᵀ τ
-  → U ⟪ τ ⟫
-tm⟪ t ⟫₀ =
-  tm⟪ t ⟫ ⟪⋄⟫
-
-
-open Spread.Baire
-open 𝓓 using (𝔈[_⋄_]; ?⟨_⟩)
+open Spread.Baire using (Point)
+open 𝓓 using (𝔈[_⋄_]; ask)
 
 module Coh where
-
   _⊨_∋_∼_
     : (α : Point)
     → (σ : Type)
@@ -178,7 +129,7 @@ module Coh where
     → α ⊨ τ ∋ ⟦f⟧ ⟦s⟧ ∼ ⟪f⟫ ⟪s⟫
 
   _⊨cx_∋_∼_
-    : {n : Nat}
+    : {n : ℕ}
     → (α : Point)
     → (Γ : Ctx n)
     → (⟦ρ⟧ : cx⟦ Γ ⟧)
@@ -187,16 +138,16 @@ module Coh where
 
   α ⊨cx Γ ∋ ⟦ρ⟧ ∼ ⟪ρ⟫ =
     (i : Fin _)
-    → α ⊨ Γ Ctx.[ i ] ∋ ⟦ρ⟧ i ∼ ⟪ρ⟫ i
+    → α ⊨ Γ [ i ] ∋ ⟦ρ⟧ i ∼ ⟪ρ⟫ i
 
   lift-sequence
     : (σ : Type)
     → (α : Point)
-    → (⟦s⟧ : Nat → ⟦ σ ⟧)
-    → (⟪s⟫ : Nat → U ⟪ σ ⟫)
-    → ((k : Nat) → α ⊨ σ ∋ ⟦s⟧ k ∼ ⟪s⟫ k)
-    → (⟦n⟧ : Nat)
-    → (⟪n⟫ : 𝔈 Nat)
+    → (⟦s⟧ : ℕ → ⟦ σ ⟧)
+    → (⟪s⟫ : ℕ → U ⟪ σ ⟫)
+    → ((k : ℕ) → α ⊨ σ ∋ ⟦s⟧ k ∼ ⟪s⟫ k)
+    → (⟦n⟧ : ℕ)
+    → (⟪n⟫ : 𝔈 ℕ)
     → α ⊨ nat ∋ ⟦n⟧ ∼ ⟪n⟫
     → α ⊨ σ ∋ ⟦s⟧ ⟦n⟧ ∼ Alg.alg ⟪ σ ⟫ (⟪n⟫ >>= (ret ∘ ⟪s⟫))
 
@@ -227,7 +178,7 @@ module Coh where
   -- Using our family of logical relations, we prove that the non-standard
   -- dialogue interpretation of System T coheres with the standard interpretation.
   soundness
-    : {n : Nat}
+    : {n : ℕ}
     → {Γ : Ctx n}
     → {σ : Type}
     → (α : Point)
@@ -276,11 +227,11 @@ module Coh where
       ⟦rec⟧ = rec ⟦s⟧ ⟦z⟧
       ⟪rec⟫ = rec (⟪s⟫ ∘ ret) ⟪z⟫
 
-      ⟦rec⟧∼⟪rec⟫ : (k : Nat) → α ⊨ σ ∋ ⟦rec⟧ k ∼ ⟪rec⟫ k
+      ⟦rec⟧∼⟪rec⟫ : (k : ℕ) → α ⊨ σ ∋ ⟦rec⟧ k ∼ ⟪rec⟫ k
       ⟦rec⟧∼⟪rec⟫ zero = ⟦z⟧∼⟪z⟫
       ⟦rec⟧∼⟪rec⟫ (suc k) = ⟦s⟧∼⟪s⟫ k (ret k) refl (⟦rec⟧ k) (⟪rec⟫ k) (⟦rec⟧∼⟪rec⟫ k)
 
-      aux : (x : Nat) → ret (⟪rec⟫ x) ≡ rec (λ x → ret ∘ ⟪s⟫ (ret x) ∘ Alg.alg ⟪ σ ⟫) (ret ⟪z⟫) x
+      aux : (x : ℕ) → ret (⟪rec⟫ x) ≡ rec (λ x → ret ∘ ⟪s⟫ (ret x) ∘ Alg.alg ⟪ σ ⟫) (ret ⟪z⟫) x
       aux zero = refl
       aux (suc x) =
         ≡.cong
@@ -312,7 +263,7 @@ module Coh where
   soundness₀
     : {τ : Type}
     → (α : Point)
-    → (t : Ctx.⋄ ⊢ᵀ τ)
+    → (t : ⋄ ⊢ᵀ τ)
     → α ⊨ τ ∋ tm⟦ t ⟧ ⟦⋄⟧ ∼ tm⟪ t ⟫ ⟪⋄⟫
   soundness₀ α t =
     soundness _ t ⟦⋄⟧ ⟪⋄⟫ λ ()

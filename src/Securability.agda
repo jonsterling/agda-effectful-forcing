@@ -13,18 +13,18 @@ infixl 4 _◂_
 
 -- A Brouwerian mental construction to verify that a node is securable.
 data _◂_ (U : Node) (φ : Species) : Set where
-  η_ : φ U → U ◂ φ
-  ϝ : (∀ x → U ⌢ x ◂ φ) → U ◂ φ
+  spit : φ U → U ◂ φ
+  bite : (∀ x → U ⌢ x ◂ φ) → U ◂ φ
 
 -- Proof that a dialogue computes the securability of a node.
 _⊩_◃_
-  : 𝔅 Nat Nat
+  : 𝔅 ℕ ℕ
   → Node
   → Species
   → Set
-𝓭 ⊩ U ◃ φ =
+d ⊩ U ◃ φ =
   (α : Point)
-    → φ (U <++ α [ 𝔅[ 𝓭 ⋄ α ] + ∣ U ∣ ])
+    → φ (U <++ α [ 𝔅[ d ⋄ α ] + ∣ U ∣ ])
 
 _⊩_◃ᵀ_
   : ⊢ᵀ (nat ⇒ nat) ⇒ nat

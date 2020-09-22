@@ -7,14 +7,14 @@ open import Basis
 -- An Escardó dialogue, representing a functional on a space whose
 -- neighborhoods are lists of Y.
 data 𝔈 (X Y Z : Set) : Set where
-  -- η x means that the result is x.
-  η_
+  -- return x means that the result is x.
+  return
     : Z
     → 𝔈 X Y Z
 
-  -- β⟨ i ⟩ 𝓭 means that we request the ith element x of the choice sequence
+  -- ask i m means that we request the ith element x of the choice sequence
   -- and proceed with 𝓭 x.
-  ?⟨_⟩
+  ask
     : X
     → (Y → 𝔈 X Y Z)
     → 𝔈 X Y Z
@@ -24,13 +24,13 @@ data 𝔈 (X Y Z : Set) : Set where
 -- given in order.
 data 𝔅 (Y Z : Set) : Set where
   -- η x means that the result is x.
-  η_
+  spit
     : Z
     → 𝔅 Y Z
 
   -- ϝ 𝓭 means that we request the *current* element x of the choice sequence
   -- and proceed with 𝓭 x.
-  ϝ
+  bite
     : (Y → 𝔅 Y Z)
     → 𝔅 Y Z
 
@@ -39,26 +39,28 @@ private
   variable {X Y} : Set
 
   𝔈-bind : {A B : Set} → (A → 𝔈 X Y B) → 𝔈 X Y A → 𝔈 X Y B
-  𝔈-bind f (η x) = f x
-  𝔈-bind f (?⟨ i ⟩ m) = ?⟨ i ⟩ λ x → 𝔈-bind f (m x)
+  𝔈-bind f (return x) = f x
+  𝔈-bind f (ask i m) = ask i λ x → 𝔈-bind f (m x)
 
-  𝔈-bind/ρ : {A : Set} (m : 𝔈 X Y A) → 𝔈-bind η_ m ≡ m
-  𝔈-bind/ρ (η x) = refl
-  𝔈-bind/ρ (?⟨ i ⟩ m) =
-    ≡.cong ?⟨ i ⟩
+  𝔈-bind/ρ : {A : Set} (m : 𝔈 X Y A) → 𝔈-bind return m ≡ m
+  𝔈-bind/ρ (return x) = refl
+  𝔈-bind/ρ (ask i m) =
+    ≡.cong
+     (ask i)
      (funext λ x →
       𝔈-bind/ρ (m x))
 
   𝔈-bind/α : {A B C : Set} {f : A → 𝔈 X Y B} {g : B → 𝔈 X Y C} (m : 𝔈 X Y A) → 𝔈-bind g (𝔈-bind f m) ≡ 𝔈-bind (𝔈-bind g ∘ f) m
-  𝔈-bind/α (η x) = refl
-  𝔈-bind/α (?⟨ i ⟩ m) =
-    ≡.cong ?⟨ i ⟩
+  𝔈-bind/α (return x) = refl
+  𝔈-bind/α (ask i m) =
+    ≡.cong
+     (ask i)
      (funext λ x →
       𝔈-bind/α (m x))
 
 instance
   𝔈-monad : Monad (𝔈 X Y)
-  Monad.ret 𝔈-monad = η_
+  Monad.ret 𝔈-monad = return
   Monad.bind 𝔈-monad = 𝔈-bind
   Monad.law/λ 𝔈-monad = refl
   Monad.law/ρ 𝔈-monad = 𝔈-bind/ρ
@@ -70,21 +72,21 @@ private
 
 -- An Escardó dialogue may be run against a choice sequence.
 𝔈[_⋄_] : 𝔈 X Y Z → (X → Y) → Z
-𝔈[ (η x) ⋄ α ] = x
-𝔈[ ?⟨ i ⟩ m ⋄ α ] =
+𝔈[ return x ⋄ α ] = x
+𝔈[ ask i m ⋄ α ] =
   𝔈[ m (α i) ⋄ α ]
 
 
 -- A Brouwerian dialogue may be run against a choice sequence.
-𝔅[_⋄_] : 𝔅 Y Z → (Nat → Y) → Z
-𝔅[ η x ⋄ α ] = x
-𝔅[ ϝ m ⋄ α ] = 𝔅[ m (α 0) ⋄ (α ∘ suc) ]
+𝔅[_⋄_] : 𝔅 Y Z → (ℕ → Y) → Z
+𝔅[ spit x ⋄ α ] = x
+𝔅[ bite m ⋄ α ] = 𝔅[ m (α 0) ⋄ (α ∘ suc) ]
 
 
 generic : 𝔈 X Y X → 𝔈 X Y Y
 generic m = do
   i ← m
-  ?⟨ i ⟩ ret
+  ask i ret
 
 module ⊢ where
   ⋄-extensional
@@ -93,10 +95,10 @@ module ⊢ where
     → (∀ i → α i ≡ β i)
     → 𝔈[ m ⋄ α ] ≡ 𝔈[ m ⋄ β ]
 
-  ⋄-extensional (η _) _ =
+  ⋄-extensional (return _) _ =
     refl
 
-  ⋄-extensional (?⟨ i ⟩ m) {α} {β} h =
+  ⋄-extensional (ask i m) {α} {β} h =
     ≡.seq
      (⋄-extensional (m (α i)) h)
      (≡.cong
@@ -109,10 +111,10 @@ module ⊢ where
     → (α : X → Y)
     → f 𝔈[ m ⋄ α ] ≡ 𝔈[ map f m ⋄ α ]
 
-  ⋄-natural f (η x) α =
+  ⋄-natural f (return x) α =
     refl
 
-  ⋄-natural f (?⟨ _ ⟩ m) α =
+  ⋄-natural f (ask _ m) α =
     ⋄-natural f (m _) α
 
 
@@ -122,10 +124,10 @@ module ⊢ where
     → (α : X → Y)
     → 𝔈[ m 𝔈[ n ⋄ α ] ⋄ α ] ≡ 𝔈[ (n >>= m) ⋄ α ]
 
-  ⋄-commutes-with-bind (η _) _ =
+  ⋄-commutes-with-bind (return _) _ =
     refl
 
-  ⋄-commutes-with-bind (?⟨ _ ⟩ m) α =
+  ⋄-commutes-with-bind (ask _ m) α =
     ⋄-commutes-with-bind (m _) α
 
 
@@ -134,8 +136,8 @@ module ⊢ where
     → (m : 𝔈 X Y X)
     → α 𝔈[ m ⋄ α ] ≡ 𝔈[ generic m ⋄ α ]
 
-  generic-diagram α (η x) =
+  generic-diagram α (return x) =
     refl
 
-  generic-diagram α (?⟨ _ ⟩ m) =
+  generic-diagram α (ask _ m) =
     generic-diagram α (m _)

@@ -4,11 +4,11 @@ module SystemT.Context where
 
 open import Basis
 
-data _^_ (X : Set) : Nat → Set where
+data _^_ (X : Set) : ℕ → Set where
   ⋄ : X ^ 0
-  _,_ : {n : Nat} → X ^ n → X → X ^ (suc n)
+  _,_ : {n : ℕ} → X ^ n → X → X ^ (suc n)
 
-_[_] : {X : Set} {n : Nat} → X ^ n → Fin n → X
+_[_] : {X : Set} {n : ℕ} → X ^ n → Fin n → X
 (Γ , x) [ zero ] = x
 (Γ , x) [ suc i ] = Γ [ i ]
 

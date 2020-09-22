@@ -17,17 +17,17 @@ private
 -- Escardó dialogue is normalizable into a Brouwerian mental construction.
 module _ {Y Z : Set} where
   mutual
-    data _⊩_norm (U : List Y) : 𝔈 Nat Y Z → Set where
-      norm-η
+    data _⊩_norm (U : List Y) : 𝔈 ℕ Y Z → Set where
+      norm/return
         : ∀ x
-        → U ⊩ η x norm
+        → U ⊩ return x norm
 
-      norm-ϝ
+      norm/ask
         : ∀ {i m}
         → U ⊩?⟨ i ⟩ m norm⊣ U
-        → U ⊩ ?⟨ i ⟩ m norm
+        → U ⊩ ask i m norm
 
-    data _⊩?⟨_⟩_norm⊣_ (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
+    data _⊩?⟨_⟩_norm⊣_ (U : List Y) : ℕ → (Y → 𝔈 ℕ Y Z) → List Y → Set where
       norm-ϝ-cons-ze
         : ∀ {V x m}
         → U ⊩ m x norm
@@ -62,18 +62,18 @@ private
 -- Brouwerian mental construction.
 mutual
   reify
-    : {m : 𝔈 Nat Y Z}
+    : {m : 𝔈 ℕ Y Z}
     → U ⊩ m norm
     → 𝔅 Y Z
-  reify (norm-η x) =
-    η x
+  reify (norm/return x) =
+    spit x
 
-  reify (norm-ϝ p) =
+  reify (norm/ask p) =
     reify-ϝ p
 
   reify-ϝ
-    : {m : Y → 𝔈 Nat Y Z}
-    → {i : Nat}
+    : {m : Y → 𝔈 ℕ Y Z}
+    → {i : ℕ}
     → U ⊩?⟨ i ⟩ m norm⊣ V
     → 𝔅 Y Z
 
@@ -84,10 +84,10 @@ mutual
     reify-ϝ p
 
   reify-ϝ (norm-ϝ-nil-ze p) =
-    ϝ (reify ∘ p)
+    bite (reify ∘ p)
 
   reify-ϝ (norm-ϝ-nil-su p) =
-    ϝ (reify-ϝ ∘ p)
+    bite (reify-ϝ ∘ p)
 
 
 
@@ -95,18 +95,18 @@ mutual
 -- we can show that it is normalizable.
 mutual
   reflect
-    : (m : 𝔈 Nat Y Z)
+    : (m : 𝔈 ℕ Y Z)
     → U ⊩ m norm
-  reflect (η x) =
-    norm-η x
+  reflect (return x) =
+    norm/return x
 
-  reflect (?⟨ i ⟩ m) =
-    norm-ϝ (reflect-ϝ _ i m)
+  reflect (ask i m) =
+    norm/ask (reflect-ϝ _ i m)
 
   reflect-ϝ
     : (V : _)
-    → (i : Nat)
-    → (m : Y → 𝔈 Nat Y Z)
+    → (i : ℕ)
+    → (m : Y → 𝔈 ℕ Y Z)
     → U ⊩?⟨ i ⟩ m norm⊣ V
 
   reflect-ϝ [] zero m =
@@ -123,10 +123,10 @@ mutual
   reflect-ϝ (x ∷ V) (suc i) m =
     norm-ϝ-cons-su (reflect-ϝ V i m)
 
-reflect₀ : (m : 𝔈 Nat Y Z) → [] ⊩ m norm
+reflect₀ : (m : 𝔈 ℕ Y Z) → [] ⊩ m norm
 reflect₀ = reflect
 
-norm : 𝔈 Nat Y Z → 𝔅 Y Z
+norm : 𝔈 ℕ Y Z → 𝔅 Y Z
 norm = reify ∘ reflect₀
 
 
@@ -151,23 +151,23 @@ module ⊢ where
   module Coh where
     mutual
       coh
-        : (m : 𝔈 Nat Y Z)
+        : {m : 𝔈 ℕ Y Z}
         → (p : U ⊩ m norm)
         → (α : 𝔖.Point Y)
         → 𝔈[ m ⋄ (U <++ α) ] ≡ 𝔅[ reify p ⋄ α ]
-      coh .(η x) (norm-η x) α = refl
-      coh _ (norm-ϝ p) = coh-ϝ _ _ _ _ p
+      coh (norm/return x) α = refl
+      coh (norm/ask p) = coh-ϝ _ _ _ _ p
 
       coh-ϝ
         : (U : _) (V : _)
-        → (i : Nat)
-        → (m : Y → 𝔈 Nat Y Z)
+        → (i : ℕ)
+        → (m : Y → 𝔈 ℕ Y Z)
         → (p : U ⊩?⟨ i ⟩ m norm⊣ V)
         → (α : 𝔖.Point Y)
         → 𝔈[ m ((V <++ α) i) ⋄ (U <++ α) ] ≡ 𝔅[ reify-ϝ p ⋄ α ]
 
       coh-ϝ U (x ∷ V) .0 m (norm-ϝ-cons-ze p) α =
-        coh (m x) p α
+        coh p α
 
       coh-ϝ U (x ∷ V) (suc i) m (norm-ϝ-cons-su p) α =
         coh-ϝ U V i m p α
@@ -175,7 +175,7 @@ module ⊢ where
       coh-ϝ U .[] .0 m (norm-ϝ-nil-ze p) α =
         ≡.seq
          (Core.⊢.⋄-extensional (m _) (prepend-snoc-id U α))
-         (coh (m _) (p _) (α ∘ suc))
+         (coh (p _) (α ∘ suc))
 
       coh-ϝ U .[] (suc i) m (norm-ϝ-nil-su p) α =
         ≡.seq
@@ -184,9 +184,7 @@ module ⊢ where
 
 
   coh
-    : (m : 𝔈 Nat Y Z)
+    : (m : 𝔈 ℕ Y Z)
     → (α : 𝔖.Point Y)
     → 𝔈[ m ⋄ α ] ≡ 𝔅[ norm m ⋄ α ]
-  coh m =
-    Coh.coh m
-      (reflect m)
+  coh = Coh.coh ∘ reflect
