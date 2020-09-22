@@ -49,8 +49,9 @@ Alg.law/μ (Alg/Π A B) m =
      (law/α m)
      (≡.seq
       (≡.cong
-       (λ ■ → Monad.bind T-monad ■ m)
-       (funext λ _ → ≡.seq law/λ (≡.inv law/λ)))
+       (m >>=_)
+       (funext λ _ →
+        ≡.seq law/λ (≡.inv law/λ)))
       (≡.inv
        (law/α m)))))
    (≡.seq
@@ -61,7 +62,7 @@ Alg.law/μ (Alg/Π A B) m =
       (law/α m)
       (≡.seq
        (≡.cong
-        (λ ■ → Monad.bind T-monad ■ m)
+        (m >>=_)
         (funext λ _ → law/λ))
        (≡.inv
         (law/α m))))))
