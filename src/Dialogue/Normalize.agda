@@ -47,15 +47,21 @@ mutual
       → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ m norm⊣ [])
       → U ⊩?⟨ suc i ⟩ m norm⊣ []
 
+
+
+private
+  variable
+    Y Z : Set
+    U V : List Y
+
+
 -- Next, we show that the proof-theoretic characterization of
 -- tree normalizability was sound, i.e. that whenever the judgment
 -- holds for an Escardó dialogue, we can compute the corresponding
 -- Brouwerian mental construction.
 mutual
   norm↓
-    : {Y Z : Set}
-    → {U : _}
-    → {m : 𝔈 Nat Y Z}
+    : {m : 𝔈 Nat Y Z}
     → U ⊩ m norm
     → 𝔅 Y Z
   norm↓ (norm-η x) =
@@ -65,9 +71,7 @@ mutual
     norm↓-ϝ p
 
   norm↓-ϝ
-    : {Y Z : Set}
-    → {U V : _}
-    → {m : Y → 𝔈 Nat Y Z}
+    : {m : Y → 𝔈 Nat Y Z}
     → {i : Nat}
     → U ⊩?⟨ i ⟩ m norm⊣ V
     → 𝔅 Y Z
@@ -85,64 +89,57 @@ mutual
     ϝ (norm↓-ϝ ∘ p)
 
 
+
 -- Then, we show that the proof theory is complete: that for any Escardó dialogue,
 -- we can show that it is normalizable.
 mutual
   norm↑
-    : {Y Z : Set}
-    → (U : _)
-    → (m : 𝔈 Nat Y Z)
+    : (m : 𝔈 Nat Y Z)
     → U ⊩ m norm
-  norm↑ U (η x) =
+  norm↑ (η x) =
     norm-η x
 
-  norm↑ U (?⟨ i ⟩ m) =
-    norm-ϝ (norm↑-ϝ _ _ i m)
+  norm↑ (?⟨ i ⟩ m) =
+    norm-ϝ (norm↑-ϝ _ i m)
 
   norm↑-ϝ
-    : {Y Z : Set}
-    → (U V : _)
+    : (V : _)
     → (i : Nat)
     → (m : Y → 𝔈 Nat Y Z)
     → U ⊩?⟨ i ⟩ m norm⊣ V
 
-  norm↑-ϝ U [] zero m =
+  norm↑-ϝ [] zero m =
     norm-ϝ-nil-ze λ x →
-      norm↑ (U ⌢ x) (m x)
+      norm↑ (m x)
 
-  norm↑-ϝ U [] (suc i) m =
+  norm↑-ϝ [] (suc i) m =
     norm-ϝ-nil-su λ x →
-      norm↑-ϝ (U ⌢ x) [] i m
+      norm↑-ϝ _ i m
 
-  norm↑-ϝ U (x ∷ V) zero m =
-    norm-ϝ-cons-ze (norm↑ U (m x))
+  norm↑-ϝ (x ∷ V) zero m =
+    norm-ϝ-cons-ze (norm↑ (m x))
 
-  norm↑-ϝ U (x ∷ V) (suc i) m =
-    norm-ϝ-cons-su (norm↑-ϝ U V i m)
+  norm↑-ϝ (x ∷ V) (suc i) m =
+    norm-ϝ-cons-su (norm↑-ϝ V i m)
 
-norm↑₀ : {Y Z : Set} (m : 𝔈 Nat Y Z) → [] ⊩ m norm
-norm↑₀ = norm↑ []
+norm↑₀ : (m : 𝔈 Nat Y Z) → [] ⊩ m norm
+norm↑₀ = norm↑
 
-norm
-  : {Y Z : Set}
-  → 𝔈 Nat Y Z
-  → 𝔅 Y Z
-norm =
-  norm↓
-    ∘ norm↑₀
+norm : 𝔈 Nat Y Z → 𝔅 Y Z
+norm = norm↓ ∘ norm↑₀
+
 
 module ⊢ where
   import Spread.Core as 𝔖
 
   private
-    _<++_ : {Y : Set} → List Y → 𝔖.Point Y → 𝔖.Point Y
+    _<++_ : List Y → 𝔖.Point Y → 𝔖.Point Y
     [] <++ α = α
     ((x ∷ xs) <++ α) zero = x
     ((x ∷ xs) <++ α) (suc i) = (xs <++ α) i
 
     prepend-snoc-id
-      : {Y : Set}
-      → (U : List Y)
+      : (U : List Y)
       → (α : 𝔖.Point Y)
       → ∀ i → (U <++ α) i ≡ ((U ⌢ α 0) <++ (α ∘ suc)) i
     prepend-snoc-id [] α zero = refl
@@ -153,9 +150,7 @@ module ⊢ where
   module Coh where
     mutual
       coh
-        : {Y Z : Set}
-        → {U : _}
-        → (m : 𝔈 Nat Y Z)
+        : (m : 𝔈 Nat Y Z)
         → (p : U ⊩ m norm)
         → (α : 𝔖.Point Y)
         → 𝔈[ m ⋄ (U <++ α) ] ≡ 𝔅[ norm↓ p ⋄ α ]
@@ -163,8 +158,7 @@ module ⊢ where
       coh _ (norm-ϝ p) = coh-ϝ _ _ _ _ p
 
       coh-ϝ
-        : {Y Z : Set}
-        → (U : _) (V : _)
+        : (U : _) (V : _)
         → (i : Nat)
         → (m : Y → 𝔈 Nat Y Z)
         → (p : U ⊩?⟨ i ⟩ m norm⊣ V)
@@ -189,10 +183,9 @@ module ⊢ where
 
 
   coh
-    : {Y Z : Set}
-    → (m : 𝔈 Nat Y Z)
+    : (m : 𝔈 Nat Y Z)
     → (α : 𝔖.Point Y)
     → 𝔈[ m ⋄ α ] ≡ 𝔅[ norm m ⋄ α ]
   coh m =
     Coh.coh m
-      (norm↑ [] m)
+      (norm↑ m)
