@@ -177,7 +177,7 @@ module Coh where
 
   -- Using our family of logical relations, we prove that the non-standard
   -- dialogue interpretation of System T coheres with the standard interpretation.
-  soundness
+  hauptsatz
     : {n : ℕ}
     → {Γ : Ctx n}
     → {σ : Type}
@@ -188,16 +188,16 @@ module Coh where
     → α ⊨cx Γ ∋ ⟦ρ⟧ ∼ ⟪ρ⟫
     → α ⊨ σ ∋ tm⟦ s ⟧ ⟦ρ⟧ ∼ tm⟪ s ⟫ ⟪ρ⟫
 
-  soundness α zero ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
+  hauptsatz α zero ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
     refl
 
-  soundness α (succ n) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
+  hauptsatz α (succ n) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
     ≡.seq
      (≡.cong suc
-      (soundness _ n _ _ ⟦ρ⟧∼⟪ρ⟫))
+      (hauptsatz _ n _ _ ⟦ρ⟧∼⟪ρ⟫))
      (𝓓.⊢.⋄-natural suc (tm⟪ n ⟫ ⟪ρ⟫) α)
 
-  soundness α (rec[ σ ] s z n) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
+  hauptsatz α (rec[ σ ] s z n) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
     let ih = lift-sequence _ _ ⟦rec⟧ ⟪rec⟫ ⟦rec⟧∼⟪rec⟫ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ in
     ≡.use ih by
       ≡.cong
@@ -208,18 +208,18 @@ module Coh where
     where
       ⟦n⟧ = tm⟦ n ⟧ ⟦ρ⟧
       ⟪n⟫ = tm⟪ n ⟫ ⟪ρ⟫
-      ⟦n⟧∼⟪n⟫ = soundness α n ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫
+      ⟦n⟧∼⟪n⟫ = hauptsatz α n ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫
 
       ⟦z⟧ = tm⟦ z ⟧ ⟦ρ⟧
       ⟪z⟫ = tm⟪ z ⟫ ⟪ρ⟫
-      ⟦z⟧∼⟪z⟫ = soundness α z ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫
+      ⟦z⟧∼⟪z⟫ = hauptsatz α z ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫
 
       ⟦s⟧ = λ x ih → tm⟦ s ⟧ (⟦ρ⟧ ⟦,⟧ x ⟦,⟧ ih)
       ⟪s⟫ = λ x ih → tm⟪ s ⟫ (⟪ρ⟫ ⟪,⟫ x ⟪,⟫ ih)
 
       ⟦s⟧∼⟪s⟫ =
         λ ⟦x⟧ ⟪x⟫ ⟦x⟧∼⟪x⟫ ⟦ih⟧ ⟪ih⟫ ⟦ih⟧∼⟪ih⟫ →
-        soundness α s (⟦ρ⟧ ⟦,⟧ ⟦x⟧ ⟦,⟧ ⟦ih⟧) (⟪ρ⟫ ⟪,⟫ ⟪x⟫ ⟪,⟫ ⟪ih⟫) λ where
+        hauptsatz α s (⟦ρ⟧ ⟦,⟧ ⟦x⟧ ⟦,⟧ ⟦ih⟧) (⟪ρ⟫ ⟪,⟫ ⟪x⟫ ⟪,⟫ ⟪ih⟫) λ where
           zero → ⟦ih⟧∼⟪ih⟫
           (suc zero) → ⟦x⟧∼⟪x⟫
           (suc (suc i)) → ⟦ρ⟧∼⟪ρ⟫ i
@@ -244,26 +244,26 @@ module Coh where
            (Alg.law/η ⟪ σ ⟫ (⟪rec⟫ x))))
 
 
-  soundness α (ν i q) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
+  hauptsatz α (ν i q) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
     ≡.ind
      (λ σ q → α ⊨ σ ∋ ≡.use ⟦ρ⟧ i by ≡.cong ⟦_⟧ q ∎ ∼ ≡.use ⟪ρ⟫ i by ≡.cong (U ∘ ⟪_⟫) q ∎)
      (⟦ρ⟧∼⟪ρ⟫ i)
      (≡.inv q)
 
-  soundness α (ƛ f) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫ =
-    soundness α f _ _ λ where
+  hauptsatz α (ƛ f) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ ⟦s⟧ ⟪s⟫ ⟦s⟧∼⟪s⟫ =
+    hauptsatz α f _ _ λ where
       zero → ⟦s⟧∼⟪s⟫
       (suc i) → ⟦ρ⟧∼⟪ρ⟫ i
 
-  soundness α (s · t) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
-    soundness α s _ _ ⟦ρ⟧∼⟪ρ⟫ _ _
-     (soundness α t _ _ ⟦ρ⟧∼⟪ρ⟫)
+  hauptsatz α (s · t) ⟦ρ⟧ ⟪ρ⟫ ⟦ρ⟧∼⟪ρ⟫ =
+    hauptsatz α s _ _ ⟦ρ⟧∼⟪ρ⟫ _ _
+     (hauptsatz α t _ _ ⟦ρ⟧∼⟪ρ⟫)
 
 
-  soundness₀
+  hauptsatz₀
     : {τ : Type}
     → (α : Point)
     → (t : ⋄ ⊢ᵀ τ)
     → α ⊨ τ ∋ tm⟦ t ⟧ ⟦⋄⟧ ∼ tm⟪ t ⟫ ⟪⋄⟫
-  soundness₀ α t =
-    soundness _ t ⟦⋄⟧ ⟪⋄⟫ λ ()
+  hauptsatz₀ α t =
+    hauptsatz _ t ⟦⋄⟧ ⟪⋄⟫ λ ()

@@ -37,7 +37,7 @@ module BarTheorem (𝔅 : Species) (𝔅-mono : monotone 𝔅) where
         ≡.coe*
          (λ ■ → 𝔅 (α [ ■ + 0 ]))
          (≡.seq
-          (Coh.soundness₀ _ F _ generic λ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ →
+          (Coh.hauptsatz₀ _ F _ generic λ ⟦n⟧ ⟪n⟫ ⟦n⟧∼⟪n⟫ →
            ≡.seq
             (≡.cong α ⟦n⟧∼⟪n⟫)
             (𝓓.⊢.generic-diagram α ⟪n⟫))
