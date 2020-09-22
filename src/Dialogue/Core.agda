@@ -57,42 +57,38 @@ private
       𝔈-bind/α (m x))
 
 instance
-  𝔈-monad : {X Y : Set} → Monad (𝔈 X Y)
+  𝔈-monad : Monad (𝔈 X Y)
   Monad.ret 𝔈-monad = η_
   Monad.bind 𝔈-monad = 𝔈-bind
   Monad.law/λ 𝔈-monad = refl
   Monad.law/ρ 𝔈-monad = 𝔈-bind/ρ
   Monad.law/α 𝔈-monad = 𝔈-bind/α
 
+
+private
+  variable Z W : Set
+
 -- An Escardó dialogue may be run against a choice sequence.
-𝔈[_⋄_]
-  : {X Y Z : Set}
-  → 𝔈 X Y Z
-  → (X → Y)
-  → Z
+𝔈[_⋄_] : 𝔈 X Y Z → (X → Y) → Z
 𝔈[ (η x) ⋄ α ] = x
 𝔈[ ?⟨ i ⟩ m ⋄ α ] =
   𝔈[ m (α i) ⋄ α ]
 
 
 -- A Brouwerian dialogue may be run against a choice sequence.
-𝔅[_⋄_] : {Y Z : Set} → 𝔅 Y Z → (Nat → Y) → Z
+𝔅[_⋄_] : 𝔅 Y Z → (Nat → Y) → Z
 𝔅[ η x ⋄ α ] = x
 𝔅[ ϝ m ⋄ α ] = 𝔅[ m (α 0) ⋄ (α ∘ suc) ]
 
 
-generic
-  : {X Y : Set}
-  → 𝔈 X Y X
-  → 𝔈 X Y Y
+generic : 𝔈 X Y X → 𝔈 X Y Y
 generic m = do
   i ← m
   ?⟨ i ⟩ ret
 
 module ⊢ where
   ⋄-extensional
-    : {X Y Z : Set}
-    → (m : 𝔈 X Y Z)
+    : (m : 𝔈 X Y Z)
     → {α β : X → Y}
     → (∀ i → α i ≡ β i)
     → 𝔈[ m ⋄ α ] ≡ 𝔈[ m ⋄ β ]
@@ -107,10 +103,8 @@ module ⊢ where
       (λ ■ → 𝔈[ m ■ ⋄ β ])
       (h i))
 
-
   ⋄-natural
-    : {X Y Z W : Set}
-    → (f : Z → W)
+    : (f : Z → W)
     → (m : 𝔈 X Y Z)
     → (α : X → Y)
     → f 𝔈[ m ⋄ α ] ≡ 𝔈[ map f m ⋄ α ]
@@ -123,8 +117,7 @@ module ⊢ where
 
 
   ⋄-commutes-with-bind
-    : {X Y Z W : Set}
-    → {m : Z → 𝔈 X Y W}
+    : {m : Z → 𝔈 X Y W}
     → (n : 𝔈 X Y Z)
     → (α : X → Y)
     → 𝔈[ m 𝔈[ n ⋄ α ] ⋄ α ] ≡ 𝔈[ (n >>= m) ⋄ α ]
@@ -137,8 +130,7 @@ module ⊢ where
 
 
   generic-diagram
-    : {X Y : Set}
-    → (α : X → Y)
+    : (α : X → Y)
     → (m : 𝔈 X Y X)
     → α 𝔈[ m ⋄ α ] ≡ 𝔈[ generic m ⋄ α ]
 
