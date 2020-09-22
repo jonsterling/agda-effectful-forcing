@@ -15,37 +15,38 @@ private
 
 -- We first define mutually inductive judgments which specify when an
 -- Escardó dialogue is normalizable into a Brouwerian mental construction.
-mutual
-  data _⊩_norm {Y Z : Set} (U : List Y) : 𝔈 Nat Y Z → Set where
-    norm-η
-      : ∀ x
-      → U ⊩ η x norm
+module _ {Y Z : Set} where
+  mutual
+    data _⊩_norm (U : List Y) : 𝔈 Nat Y Z → Set where
+      norm-η
+        : ∀ x
+        → U ⊩ η x norm
 
-    norm-ϝ
-      : ∀ {i m}
-      → U ⊩?⟨ i ⟩ m norm⊣ U
-      → U ⊩ ?⟨ i ⟩ m norm
+      norm-ϝ
+        : ∀ {i m}
+        → U ⊩?⟨ i ⟩ m norm⊣ U
+        → U ⊩ ?⟨ i ⟩ m norm
 
-  data _⊩?⟨_⟩_norm⊣_ {Y Z : Set} (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
-    norm-ϝ-cons-ze
-      : ∀ {V x m}
-      → U ⊩ m x norm
-      → U ⊩?⟨ 0 ⟩ m norm⊣ (x ∷ V)
+    data _⊩?⟨_⟩_norm⊣_ (U : List Y) : Nat → (Y → 𝔈 Nat Y Z) → List Y → Set where
+      norm-ϝ-cons-ze
+        : ∀ {V x m}
+        → U ⊩ m x norm
+        → U ⊩?⟨ 0 ⟩ m norm⊣ (x ∷ V)
 
-    norm-ϝ-cons-su
-      : ∀ {V x i m}
-      → U ⊩?⟨ i ⟩ m norm⊣ V
-      → U ⊩?⟨ suc i ⟩ m norm⊣ (x ∷ V)
+      norm-ϝ-cons-su
+        : ∀ {V x i m}
+        → U ⊩?⟨ i ⟩ m norm⊣ V
+        → U ⊩?⟨ suc i ⟩ m norm⊣ (x ∷ V)
 
-    norm-ϝ-nil-ze
-      : ∀ {m}
-      → (∀ x → (U ⌢ x) ⊩ m x norm)
-      → U ⊩?⟨ 0 ⟩ m norm⊣ []
+      norm-ϝ-nil-ze
+        : ∀ {m}
+        → (∀ x → (U ⌢ x) ⊩ m x norm)
+        → U ⊩?⟨ 0 ⟩ m norm⊣ []
 
-    norm-ϝ-nil-su
-      : ∀ {i m}
-      → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ m norm⊣ [])
-      → U ⊩?⟨ suc i ⟩ m norm⊣ []
+      norm-ϝ-nil-su
+        : ∀ {i m}
+        → (∀ x → (U ⌢ x) ⊩?⟨ i ⟩ m norm⊣ [])
+        → U ⊩?⟨ suc i ⟩ m norm⊣ []
 
 
 
