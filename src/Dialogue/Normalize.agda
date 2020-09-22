@@ -61,73 +61,73 @@ private
 -- holds for an Escardó dialogue, we can compute the corresponding
 -- Brouwerian mental construction.
 mutual
-  norm↓
+  reify
     : {m : 𝔈 Nat Y Z}
     → U ⊩ m norm
     → 𝔅 Y Z
-  norm↓ (norm-η x) =
+  reify (norm-η x) =
     η x
 
-  norm↓ (norm-ϝ p) =
-    norm↓-ϝ p
+  reify (norm-ϝ p) =
+    reify-ϝ p
 
-  norm↓-ϝ
+  reify-ϝ
     : {m : Y → 𝔈 Nat Y Z}
     → {i : Nat}
     → U ⊩?⟨ i ⟩ m norm⊣ V
     → 𝔅 Y Z
 
-  norm↓-ϝ (norm-ϝ-cons-ze p) =
-    norm↓ p
+  reify-ϝ (norm-ϝ-cons-ze p) =
+    reify p
 
-  norm↓-ϝ (norm-ϝ-cons-su p) =
-    norm↓-ϝ p
+  reify-ϝ (norm-ϝ-cons-su p) =
+    reify-ϝ p
 
-  norm↓-ϝ (norm-ϝ-nil-ze p) =
-    ϝ (norm↓ ∘ p)
+  reify-ϝ (norm-ϝ-nil-ze p) =
+    ϝ (reify ∘ p)
 
-  norm↓-ϝ (norm-ϝ-nil-su p) =
-    ϝ (norm↓-ϝ ∘ p)
+  reify-ϝ (norm-ϝ-nil-su p) =
+    ϝ (reify-ϝ ∘ p)
 
 
 
 -- Then, we show that the proof theory is complete: that for any Escardó dialogue,
 -- we can show that it is normalizable.
 mutual
-  norm↑
+  reflect
     : (m : 𝔈 Nat Y Z)
     → U ⊩ m norm
-  norm↑ (η x) =
+  reflect (η x) =
     norm-η x
 
-  norm↑ (?⟨ i ⟩ m) =
-    norm-ϝ (norm↑-ϝ _ i m)
+  reflect (?⟨ i ⟩ m) =
+    norm-ϝ (reflect-ϝ _ i m)
 
-  norm↑-ϝ
+  reflect-ϝ
     : (V : _)
     → (i : Nat)
     → (m : Y → 𝔈 Nat Y Z)
     → U ⊩?⟨ i ⟩ m norm⊣ V
 
-  norm↑-ϝ [] zero m =
+  reflect-ϝ [] zero m =
     norm-ϝ-nil-ze λ x →
-      norm↑ (m x)
+      reflect (m x)
 
-  norm↑-ϝ [] (suc i) m =
+  reflect-ϝ [] (suc i) m =
     norm-ϝ-nil-su λ x →
-      norm↑-ϝ _ i m
+      reflect-ϝ _ i m
 
-  norm↑-ϝ (x ∷ V) zero m =
-    norm-ϝ-cons-ze (norm↑ (m x))
+  reflect-ϝ (x ∷ V) zero m =
+    norm-ϝ-cons-ze (reflect (m x))
 
-  norm↑-ϝ (x ∷ V) (suc i) m =
-    norm-ϝ-cons-su (norm↑-ϝ V i m)
+  reflect-ϝ (x ∷ V) (suc i) m =
+    norm-ϝ-cons-su (reflect-ϝ V i m)
 
-norm↑₀ : (m : 𝔈 Nat Y Z) → [] ⊩ m norm
-norm↑₀ = norm↑
+reflect₀ : (m : 𝔈 Nat Y Z) → [] ⊩ m norm
+reflect₀ = reflect
 
 norm : 𝔈 Nat Y Z → 𝔅 Y Z
-norm = norm↓ ∘ norm↑₀
+norm = reify ∘ reflect₀
 
 
 module ⊢ where
@@ -154,7 +154,7 @@ module ⊢ where
         : (m : 𝔈 Nat Y Z)
         → (p : U ⊩ m norm)
         → (α : 𝔖.Point Y)
-        → 𝔈[ m ⋄ (U <++ α) ] ≡ 𝔅[ norm↓ p ⋄ α ]
+        → 𝔈[ m ⋄ (U <++ α) ] ≡ 𝔅[ reify p ⋄ α ]
       coh .(η x) (norm-η x) α = refl
       coh _ (norm-ϝ p) = coh-ϝ _ _ _ _ p
 
@@ -164,7 +164,7 @@ module ⊢ where
         → (m : Y → 𝔈 Nat Y Z)
         → (p : U ⊩?⟨ i ⟩ m norm⊣ V)
         → (α : 𝔖.Point Y)
-        → 𝔈[ m ((V <++ α) i) ⋄ (U <++ α) ] ≡ 𝔅[ norm↓-ϝ p ⋄ α ]
+        → 𝔈[ m ((V <++ α) i) ⋄ (U <++ α) ] ≡ 𝔅[ reify-ϝ p ⋄ α ]
 
       coh-ϝ U (x ∷ V) .0 m (norm-ϝ-cons-ze p) α =
         coh (m x) p α
@@ -189,4 +189,4 @@ module ⊢ where
     → 𝔈[ m ⋄ α ] ≡ 𝔅[ norm m ⋄ α ]
   coh m =
     Coh.coh m
-      (norm↑ m)
+      (reflect m)
